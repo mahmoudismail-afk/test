@@ -210,7 +210,7 @@ export default function MemberForm({ plans, member, profile, isEdit = false }: M
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+        <div className="form-actions-bar" style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
           <button type="button" className="btn btn-secondary" onClick={() => router.back()}>
             Cancel
           </button>

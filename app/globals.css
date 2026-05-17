@@ -304,7 +304,8 @@ select.form-input {
   inset: 0;
   background: rgba(0,0,0,0.7);
   backdrop-filter: blur(4px);
-  z-index: 100;
+  /* Must sit ABOVE bottom nav (z-index 300) and sidebar overlay (350) */
+  z-index: 400;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -561,22 +562,39 @@ select.form-input {
   h1 { font-size: 1.5rem; }
   h2 { font-size: 1.25rem; }
 
-  /* modal full-screen on phones */
-  .modal-overlay { align-items: flex-end; padding: 0; }
+  /* Modal slides up from bottom as a sheet */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
   .modal {
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    max-height: 92vh;
+    /* Leave room for iOS home indicator */
+    max-height: calc(92vh - env(safe-area-inset-bottom, 0px));
     max-width: 100%;
   }
   .modal-header { padding: 1rem 1.25rem; }
   .modal-body   { padding: 1rem 1.25rem; }
   .modal-footer {
     padding: 0.875rem 1.25rem;
-    /* Stack buttons vertically and make them full width on small screens */
+    /* Leave room for iOS safe area */
+    padding-bottom: calc(0.875rem + env(safe-area-inset-bottom, 0px));
     flex-direction: column-reverse;
     gap: 0.5rem;
   }
   .modal-footer .btn { width: 100%; justify-content: center; }
+
+  /* Page-level form action bars (e.g. Add/Edit Member) — sticky footer */
+  .form-actions-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background: var(--bg-base);
+    padding: 0.875rem 0;
+    padding-bottom: calc(0.875rem + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
 
   /* search bar stacks */
   .search-bar { flex-direction: column; align-items: stretch; }
