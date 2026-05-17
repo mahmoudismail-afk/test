@@ -7,9 +7,11 @@ import {
   AlertTriangle, Pencil, Trash2, RefreshCcw, CheckCircle, AlertCircle, Filter,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import CurrencyInput from '@/components/ui/CurrencyInput';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 export type InventoryItem = {
   id: string;
@@ -47,6 +49,7 @@ export default function InventoryClient({
   initialTransactions: InventoryTransaction[];
 }) {
   const router = useRouter();
+  const { format } = useCurrency();
   const [items, setItems] = useState<InventoryItem[]>(initialItems);
   const [transactions, setTransactions] = useState<InventoryTransaction[]>(initialTransactions);
   const [tab, setTab] = useState<'products' | 'transactions'>('products');
@@ -206,10 +209,10 @@ export default function InventoryClient({
       {/* Stats */}
       <div className="grid-stats" style={{ marginBottom: '1.5rem' }}>
         {[
-          { label: 'Inventory Value', value: formatCurrency(inventoryValue), icon: Package, color: '#6c63ff', bg: 'rgba(108,99,255,0.15)' },
-          { label: 'Shop Revenue', value: formatCurrency(totalRevenue), icon: TrendingUp, color: '#10b981', bg: 'rgba(16,185,129,0.15)' },
-          { label: 'Purchase Costs', value: formatCurrency(totalCosts), icon: TrendingDown, color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
-          { label: 'Shop Profit', value: formatCurrency(inventoryProfit), icon: ShoppingCart, color: inventoryProfit >= 0 ? '#10b981' : '#ef4444', bg: inventoryProfit >= 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)' },
+          { label: 'Inventory Value', value: format(inventoryValue), icon: Package, color: '#6c63ff', bg: 'rgba(108,99,255,0.15)' },
+          { label: 'Shop Revenue', value: format(totalRevenue), icon: TrendingUp, color: '#10b981', bg: 'rgba(16,185,129,0.15)' },
+          { label: 'Purchase Costs', value: format(totalCosts), icon: TrendingDown, color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
+          { label: 'Shop Profit', value: format(inventoryProfit), icon: ShoppingCart, color: inventoryProfit >= 0 ? '#10b981' : '#ef4444', bg: inventoryProfit >= 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)' },
         ].map(({ label, value, icon: Icon, color, bg }) => (
           <div key={label} className="card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.25rem' }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: bg, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -295,11 +298,11 @@ export default function InventoryClient({
                             {item.category}
                           </span>
                         </td>
-                        <td style={{ color: 'var(--text-secondary)' }}>{formatCurrency(item.cost_price)}</td>
-                        <td style={{ color: 'var(--success)', fontWeight: 600 }}>{formatCurrency(item.sell_price)}</td>
+                        <td style={{ color: 'var(--text-secondary)' }}>{format(item.cost_price)}</td>
+                        <td style={{ color: 'var(--success)', fontWeight: 600 }}>{format(item.sell_price)}</td>
                         <td>
                           <span style={{ fontSize: '0.8rem', fontWeight: 600, color: margin >= 0 ? 'var(--success)' : 'var(--danger)' }}>
-                            {formatCurrency(margin)} ({marginPct}%)
+                            {format(margin)} ({marginPct}%)
                           </span>
                         </td>
                         <td>
@@ -372,9 +375,9 @@ export default function InventoryClient({
                         </span>
                       </td>
                       <td>{txn.quantity}</td>
-                      <td>{formatCurrency(txn.unit_price)}</td>
+                      <td>{format(txn.unit_price)}</td>
                       <td style={{ fontWeight: 600, color: txn.type === 'sale' ? 'var(--success)' : 'var(--danger)' }}>
-                        {txn.type === 'sale' ? '+' : '-'}{formatCurrency(txn.total_amount)}
+                        {txn.type === 'sale' ? '+' : '-'}{format(txn.total_amount)}
                       </td>
                       <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{txn.notes || '—'}</td>
                     </tr>
@@ -412,11 +415,19 @@ export default function InventoryClient({
           <div className="grid-2" style={{ gap: '1rem' }}>
             <div className="form-group">
               <label className="form-label">Cost Price <span className="required">*</span></label>
-              <input type="number" step="0.01" min="0" className="form-input" value={itemForm.cost_price} onChange={e => setItemForm(p => ({ ...p, cost_price: e.target.value }))} placeholder="0.00" />
+              <CurrencyInput
+                valueUsd={itemForm.cost_price}
+                onChange={val => setItemForm(p => ({ ...p, cost_price: val }))}
+                id="item-cost-price"
+              />
             </div>
             <div className="form-group">
               <label className="form-label">Sell Price <span className="required">*</span></label>
-              <input type="number" step="0.01" min="0" className="form-input" value={itemForm.sell_price} onChange={e => setItemForm(p => ({ ...p, sell_price: e.target.value }))} placeholder="0.00" />
+              <CurrencyInput
+                valueUsd={itemForm.sell_price}
+                onChange={val => setItemForm(p => ({ ...p, sell_price: val }))}
+                id="item-sell-price"
+              />
             </div>
           </div>
           <div className="grid-2" style={{ gap: '1rem' }}>
@@ -447,7 +458,7 @@ export default function InventoryClient({
           {txnItem && (
             <div style={{ background: 'var(--bg-base)', borderRadius: 10, padding: '0.875rem', fontSize: '0.875rem', display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
               <div><p style={{ color: 'var(--text-muted)', marginBottom: 2 }}>Current Stock</p><p style={{ fontWeight: 700 }}>{txnItem.stock_qty}</p></div>
-              <div><p style={{ color: 'var(--text-muted)', marginBottom: 2 }}>{txnForm.type === 'sale' ? 'Sell Price' : 'Cost Price'}</p><p style={{ fontWeight: 700, color: 'var(--success)' }}>{formatCurrency(txnForm.type === 'sale' ? txnItem.sell_price : txnItem.cost_price)}</p></div>
+              <div><p style={{ color: 'var(--text-muted)', marginBottom: 2 }}>{txnForm.type === 'sale' ? 'Sell Price' : 'Cost Price'}</p><p style={{ fontWeight: 700, color: 'var(--success)' }}>{format(txnForm.type === 'sale' ? txnItem.sell_price : txnItem.cost_price)}</p></div>
             </div>
           )}
           <div className="form-group">
@@ -460,7 +471,7 @@ export default function InventoryClient({
           </div>
           {txnItem && txnForm.quantity && !isNaN(parseInt(txnForm.quantity)) && (
             <div style={{ textAlign: 'right', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              Total: <strong style={{ color: 'var(--primary)' }}>{formatCurrency(parseInt(txnForm.quantity) * (txnForm.type === 'sale' ? txnItem.sell_price : txnItem.cost_price))}</strong>
+              Total: <strong style={{ color: 'var(--primary)' }}>{format(parseInt(txnForm.quantity) * (txnForm.type === 'sale' ? txnItem.sell_price : txnItem.cost_price))}</strong>
             </div>
           )}
         </div>

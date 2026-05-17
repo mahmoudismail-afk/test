@@ -327,6 +327,13 @@
   margin-top: 0.125rem;
 }
 
+/* Two-column chart grid — collapses to 1 col on mobile */
+.chart-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
 /* ── Recent Activity List ── */
 .activity-list {
   display: flex;
@@ -388,7 +395,18 @@
   .dashboard-content { padding: 1rem; }
 
   /* add padding at the bottom so content isn't hidden by mobile bottom bar */
-  .dashboard-content { padding-bottom: 5rem; }
+  .dashboard-content { padding-bottom: 5.5rem; }
+
+  /* Charts: single column on phones */
+  .chart-card + .chart-card { margin-top: 0; }
+  .chart-grid-2 { grid-template-columns: 1fr; }
+
+  /* Stat cards: shrink icon */
+  .stat-icon { width: 38px; height: 38px; }
+
+  /* Page header action button: full width on small screens */
+  .page-header > button,
+  .page-header > a { width: 100%; justify-content: center; }
 }
 
 /* ── Mobile Bottom Navigation Bar ── */
@@ -459,7 +477,18 @@
 }
 
 @media (max-width: 480px) {
-  .dashboard-content { padding: 0.75rem; padding-bottom: 5rem; }
+  .dashboard-content { padding: 0.75rem; padding-bottom: 5.5rem; }
   .topbar { padding: 0 0.75rem; }
   .card { padding: 1rem; }
+  /* Smaller chart padding on phones */
+  .chart-card { padding: 1rem; }
+  .chart-card-header { margin-bottom: 1rem; }
+  /* Stat icons slightly smaller */
+  .stat-icon { width: 36px; height: 36px; }
+  /* Search bars stack vertically */
+  .search-bar { flex-direction: column; align-items: stretch; }
+  .search-bar > * { width: 100%; }
+  .search-input-wrapper { min-width: 0; max-width: 100%; }
+  /* Stat summary mini-grids: keep 2-col for small summary cards */
+  .grid-stats { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 }

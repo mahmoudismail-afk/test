@@ -7,24 +7,28 @@ import {
   AlertCircle, CheckCircle, Eye, EyeOff, Lock, Settings2
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { createStaffAccount, deleteUser, updateProfile, saveStaffPermissions } from '@/lib/actions/settings';
+import { createStaffAccount, deleteUser, updateProfile, saveStaffPermissions, saveLbpRate } from '@/lib/actions/settings';
 import { getInitials, formatDate } from '@/lib/utils';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 export default function SettingsClient({
   profile,
   userId,
   allUsers,
   staffPermissions = ['dashboard', 'members', 'payments', 'plans', 'expenses', 'history'],
+  initialLbpRate = 89500,
 }: {
   profile: any;
   userId: string;
   allUsers: any[];
   staffPermissions?: string[];
+  initialLbpRate?: number;
 }) {
   const router = useRouter();
   const isAdmin = profile?.role === 'admin';
+  const { refreshRate } = useCurrency();
 
   // ── Profile form ──
   const [profileForm, setProfileForm] = useState({
@@ -146,6 +150,27 @@ export default function SettingsClient({
 
   function togglePermission(id: string) {
     setStaffPerms(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
+  }
+
+  // ── LBP Exchange Rate (admin only) ──
+  const [lbpRateVal, setLbpRateVal] = useState(String(initialLbpRate));
+  const [rateSaving, setRateSaving] = useState(false);
+  const [rateMsg, setRateMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  async function handleSaveRate() {
+    const rate = Number(lbpRateVal);
+    if (isNaN(rate) || rate <= 0) { setRateMsg({ type: 'error', text: 'Please enter a valid positive rate.' }); return; }
+    setRateSaving(true);
+    setRateMsg(null);
+    const result = await saveLbpRate(rate);
+    if (!result.error) {
+      // Immediately update the rate in the global context so all inputs use the new rate
+      await refreshRate();
+      setRateMsg({ type: 'success', text: `Rate updated to ${rate.toLocaleString()} LBP/USD — all inputs now use this rate.` });
+    } else {
+      setRateMsg({ type: 'error', text: result.error });
+    }
+    setRateSaving(false);
   }
 
 
@@ -358,6 +383,51 @@ export default function SettingsClient({
               >
                 {permsSaving ? <span className="spinner" /> : null}
                 {permsSaving ? 'Saving...' : 'Save Permissions'}
+              </button>
+            </div>
+
+            {/* LBP Exchange Rate Card */}
+            <div className="card">
+              <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: '1.1rem' }}>ل.ل</span> USD → LBP Exchange Rate
+              </h4>
+              <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
+                Set how many Lebanese Pounds equal 1 US Dollar. Used for all LBP price displays across the system.
+              </p>
+
+              {rateMsg && (
+                <div className={`alert ${rateMsg.type === 'success' ? 'alert-success' : 'alert-danger'}`} style={{ marginBottom: '1rem' }}>
+                  {rateMsg.type === 'success' ? <CheckCircle size={15} /> : <AlertCircle size={15} />}
+                  {rateMsg.text}
+                </div>
+              )}
+
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">1 USD =</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input
+                    type="number"
+                    min="1"
+                    step="500"
+                    className="form-input"
+                    value={lbpRateVal}
+                    onChange={e => setLbpRateVal(e.target.value)}
+                    style={{ flex: 1 }}
+                    id="lbp-rate-input"
+                  />
+                  <span style={{ fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>ل.ل LBP</span>
+                </div>
+                <span className="form-hint">Current rate: 1 USD = {Number(lbpRateVal).toLocaleString()} LBP</span>
+              </div>
+
+              <button
+                className={`btn btn-primary ${rateSaving ? 'btn-loading' : ''}`}
+                onClick={handleSaveRate}
+                disabled={rateSaving}
+                id="save-lbp-rate-btn"
+              >
+                {rateSaving ? <span className="spinner" /> : null}
+                {rateSaving ? 'Saving...' : 'Save Exchange Rate'}
               </button>
             </div>
           </div>

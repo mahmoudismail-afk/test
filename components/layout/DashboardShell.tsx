@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import {
   LayoutDashboard, Users, DollarSign, CreditCard,
   Receipt, ShoppingCart, History,
@@ -44,50 +45,52 @@ export default function DashboardShell({ userName, userEmail, avatarUrl, role, s
   );
 
   return (
-    <div className="dashboard-shell">
-      {/* Overlay backdrop for mobile sidebar (tablet only — phones use bottom nav) */}
-      {mobileOpen && (
-        <div
-          onClick={() => setMobileOpen(false)}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 350,
-            background: 'rgba(0,0,0,0.6)',
-            backdropFilter: 'blur(2px)',
-          }}
-        />
-      )}
+    <CurrencyProvider>
+      <div className="dashboard-shell">
+        {/* Overlay backdrop for mobile sidebar (tablet only — phones use bottom nav) */}
+        {mobileOpen && (
+          <div
+            onClick={() => setMobileOpen(false)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 350,
+              background: 'rgba(0,0,0,0.6)',
+              backdropFilter: 'blur(2px)',
+            }}
+          />
+        )}
 
-      <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} role={role} staffPermissions={staffPermissions} />
+        <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} role={role} staffPermissions={staffPermissions} />
 
-      <div className="dashboard-main">
-        <Topbar
-          userName={userName}
-          userEmail={userEmail}
-          avatarUrl={avatarUrl}
-          role={role}
-          onMenuClick={() => setMobileOpen(prev => !prev)}
-        />
-        <main className="dashboard-content">
-          {children}
-        </main>
+        <div className="dashboard-main">
+          <Topbar
+            userName={userName}
+            userEmail={userEmail}
+            avatarUrl={avatarUrl}
+            role={role}
+            onMenuClick={() => setMobileOpen(prev => !prev)}
+          />
+          <main className="dashboard-content">
+            {children}
+          </main>
+        </div>
+
+        {/* Mobile bottom navigation bar (phones ≤768px) */}
+        <nav className="mobile-bottom-nav">
+          {visibleBottomNav.map(({ href, label, icon: Icon }) => {
+            const isActive = pathname === href || pathname.startsWith(href + '/');
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`mobile-bottom-nav-item ${isActive ? 'active' : ''}`}
+              >
+                <Icon size={20} />
+                <span>{label}</span>
+              </Link>
+            );
+          })}
+        </nav>
       </div>
-
-      {/* Mobile bottom navigation bar (phones ≤768px) */}
-      <nav className="mobile-bottom-nav">
-        {visibleBottomNav.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname === href || pathname.startsWith(href + '/');
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`mobile-bottom-nav-item ${isActive ? 'active' : ''}`}
-            >
-              <Icon size={20} />
-              <span>{label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-    </div>
+    </CurrencyProvider>
   );
 }

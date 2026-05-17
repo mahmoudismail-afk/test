@@ -99,3 +99,22 @@ export async function saveStaffPermissions(permissions: string[]) {
   return { success: true };
 }
 
+export async function getLbpRate(): Promise<number> {
+  const supabaseAdmin = getAdminClient();
+  const { data } = await supabaseAdmin
+    .from('system_settings')
+    .select('value')
+    .eq('key', 'lbp_rate')
+    .single();
+  const rate = Number(data?.value);
+  return !isNaN(rate) && rate > 0 ? rate : 89500;
+}
+
+export async function saveLbpRate(rate: number) {
+  const supabaseAdmin = getAdminClient();
+  const { error } = await supabaseAdmin
+    .from('system_settings')
+    .upsert({ key: 'lbp_rate', value: rate });
+  if (error) return { error: error.message };
+  return { success: true };
+}

@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, DollarSign, AlertCircle, Trash2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import CurrencyInput from '@/components/ui/CurrencyInput';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 const METHODS = ['cash', 'card', 'bank_transfer', 'other'];
 
@@ -25,6 +26,7 @@ export default function PaymentsClient({
   members: any[];
 }) {
   const router = useRouter();
+  const { format } = useCurrency();
   const [payments, setPayments] = useState(initial);
   const [deletedPayments, setDeletedPayments] = useState(initialDeleted);
   const [showDeleted, setShowDeleted] = useState(false);
@@ -66,7 +68,6 @@ export default function PaymentsClient({
     setError(''); setSaving(true);
     const supabase = createClient();
 
-    // Build notes: prepend payer name if no member selected
     let notesValue = form.notes || null;
     if (!form.member_id && form.payer_name.trim()) {
       notesValue = form.notes
@@ -138,13 +139,12 @@ export default function PaymentsClient({
   }
 
   function PaymentRow({ p, showDelete }: { p: any; showDelete: boolean }) {
-
     const displayNotes = p.notes ? p.notes.replace(/^\[Payer: .+?\]\s*/, '') : '—';
     return (
       <tr key={p.id}>
         <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{getPayerName(p)}</td>
         <td style={{ color: 'var(--success)', fontWeight: 600 }}>
-          {formatCurrency(p.amount)}
+          {format(Number(p.amount))}
         </td>
         <td><span className="badge badge-neutral">{methodLabel(p.payment_method)}</span></td>
         <td>{formatDate(p.payment_date)}</td>
@@ -183,7 +183,7 @@ export default function PaymentsClient({
       <div className="page-header">
         <div>
           <h1 className="page-title">Payments</h1>
-          <p className="page-subtitle">Total collected: <strong style={{ color: 'var(--success)' }}>{formatCurrency(totalRevenue)}</strong></p>
+          <p className="page-subtitle">Total collected: <strong style={{ color: 'var(--success)' }}>{format(totalRevenue)}</strong></p>
         </div>
         <button className="btn btn-primary" onClick={() => setModalOpen(true)} id="add-payment-btn">
           <Plus size={16} /> Record Payment
@@ -197,7 +197,7 @@ export default function PaymentsClient({
           return (
             <div key={method} className="stat-card">
               <p className="stat-label">{methodLabel(method)}</p>
-              <p className="stat-value" style={{ fontSize: '1.5rem' }}>{formatCurrency(total)}</p>
+              <p className="stat-value" style={{ fontSize: '1.5rem' }}>{format(total)}</p>
             </div>
           );
         })}
@@ -277,7 +277,7 @@ export default function PaymentsClient({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {error && <div className="alert alert-danger"><AlertCircle size={15} />{error}</div>}
 
-          {/* Name field: free-text with optional member dropdown */}
+          {/* Name field */}
           <div className="form-group" style={{ position: 'relative' }}>
             <label className="form-label">Name <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>(optional — type any name or pick a member)</span></label>
             <input
@@ -288,7 +288,6 @@ export default function PaymentsClient({
               onChange={(e) => {
                 setSearchTerm(e.target.value);
                 setShowDropdown(true);
-                // If user is typing freely (not picking), clear member_id and store as payer_name
                 setForm((prev) => ({ ...prev, member_id: '', payer_name: e.target.value }));
               }}
               onFocus={() => setShowDropdown(true)}
@@ -358,7 +357,7 @@ export default function PaymentsClient({
         onClose={() => setPaymentToDelete(null)}
         onConfirm={handleDelete}
         title="Delete Payment"
-        message={`Are you sure you want to delete the payment of ${paymentToDelete ? formatCurrency(paymentToDelete.amount) : ''}? You can restore it later from the Deleted Payments section.`}
+        message={`Are you sure you want to delete the payment of ${paymentToDelete ? format(paymentToDelete.amount) : ''}? You can restore it later from the Deleted Payments section.`}
         confirmLabel="Delete"
         loading={deleting}
       />

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff, Dumbbell, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Scissors, Mail, Lock, AlertCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import '../auth.css';
 
@@ -70,9 +70,9 @@ function LoginForm() {
       {/* Logo */}
       <div className="auth-logo">
         <div className="auth-logo-icon">
-          <Dumbbell size={28} />
+          <Scissors size={28} />
         </div>
-        <span className="auth-logo-text">AMA GYM</span>
+        <span className="auth-logo-text">Salon Raed</span>
       </div>
 
       <div className="auth-header">

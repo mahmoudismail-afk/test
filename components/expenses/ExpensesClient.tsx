@@ -7,10 +7,11 @@ import {
   Wallet, TrendingDown, Filter, CheckCircle,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import CurrencyInput from '@/components/ui/CurrencyInput';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 export type Expense = {
   id: string;
@@ -55,6 +56,7 @@ const EMPTY_FORM = {
 
 export default function ExpensesClient({ initialExpenses }: { initialExpenses: Expense[] }) {
   const router = useRouter();
+  const { format } = useCurrency();
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
   const [filterType, setFilterType] = useState('');
   const [filterMonth, setFilterMonth] = useState('');
@@ -208,9 +210,9 @@ export default function ExpensesClient({ initialExpenses }: { initialExpenses: E
       {/* Summary Cards */}
       <div className="grid-stats" style={{ marginBottom: '1.5rem' }}>
         {[
-          { label: 'Total Expenses', value: formatCurrency(totalExpenses), icon: Receipt, color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
-          { label: 'Total Salaries', value: formatCurrency(totalSalaries), icon: Wallet, color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
-          { label: 'Grand Total', value: formatCurrency(grandTotal), icon: TrendingDown, color: '#8b5cf6', bg: 'rgba(139,92,246,0.15)' },
+          { label: 'Total Expenses', value: format(totalExpenses), icon: Receipt, color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
+          { label: 'Total Salaries', value: format(totalSalaries), icon: Wallet, color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
+          { label: 'Grand Total', value: format(grandTotal), icon: TrendingDown, color: '#8b5cf6', bg: 'rgba(139,92,246,0.15)' },
         ].map(({ label, value, icon: Icon, color, bg }) => (
           <div key={label} className="card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.25rem' }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: bg, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -304,7 +306,7 @@ export default function ExpensesClient({ initialExpenses }: { initialExpenses: E
                       )}
                     </td>
                     <td style={{ color: '#ef4444', fontWeight: 600 }}>
-                      {formatCurrency(exp.amount)}
+                      {format(exp.amount)}
                     </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{exp.notes || '—'}</td>
                     <td>

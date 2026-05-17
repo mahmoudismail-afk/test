@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import SettingsClient from '@/components/settings/SettingsClient';
-import { getStaffPermissions } from '@/lib/actions/settings';
+import { getStaffPermissions, getLbpRate } from '@/lib/actions/settings';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = { title: 'Settings' };
+export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -27,7 +28,10 @@ export default async function SettingsPage() {
     allUsers = data ?? [];
   }
 
-  const staffPermissions = await getStaffPermissions();
+  const [staffPermissions, lbpRate] = await Promise.all([
+    getStaffPermissions(),
+    getLbpRate(),
+  ]);
 
   return (
     <SettingsClient
@@ -35,6 +39,7 @@ export default async function SettingsPage() {
       userId={user.id}
       allUsers={allUsers}
       staffPermissions={staffPermissions}
+      initialLbpRate={lbpRate}
     />
   );
 }

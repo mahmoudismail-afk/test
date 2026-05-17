@@ -30,7 +30,7 @@ async function getHistoryData(year: number) {
       .lte('payment_date', yearEnd),
 
     supabase.from('members')
-      .select('created_at, status, gender')
+      .select('created_at, status')
       .gte('created_at', `${yearStart}T00:00:00`)
       .lte('created_at', `${yearEnd}T23:59:59`),
 
@@ -74,17 +74,6 @@ async function getHistoryData(year: number) {
   });
   const memberGrowthData = ALL_MONTHS.map(month => ({ month, members: membersByMonth[month] }));
   const totalNewMembers = membersJoined?.length ?? 0;
-
-  // --- Gender breakdown per month ---
-  const genderByMonth: Record<string, { male: number; female: number }> = {};
-  ALL_MONTHS.forEach(m => (genderByMonth[m] = { male: 0, female: 0 }));
-  (membersJoined ?? []).forEach((mb: any) => {
-    const m = new Date(mb.created_at).toLocaleString('en-US', { month: 'short' });
-    if (!genderByMonth[m]) return;
-    if (mb.gender === 'male') genderByMonth[m].male++;
-    else if (mb.gender === 'female') genderByMonth[m].female++;
-  });
-  const genderData = ALL_MONTHS.map(month => ({ month, ...genderByMonth[month] }));
 
 
   // --- Plan distribution ---
@@ -154,7 +143,6 @@ async function getHistoryData(year: number) {
     monthlyExpensesData,
     profitData,
     inventoryData,
-    genderData,
     stats: {
       totalRevenue,
       totalNewMembers,
@@ -202,7 +190,7 @@ export default async function HistoryPage({
     getAvailableYears(),
   ]);
 
-  const { stats, revenueData, memberGrowthData, planDistData, renewalsData, monthlyExpensesData, profitData, inventoryData, genderData } = historyData;
+  const { stats, revenueData, memberGrowthData, planDistData, renewalsData, monthlyExpensesData, profitData, inventoryData } = historyData;
 
   return (
     <div>
@@ -260,7 +248,6 @@ export default async function HistoryPage({
         monthlyExpensesData={monthlyExpensesData}
         profitData={profitData}
         inventoryData={inventoryData}
-        genderData={genderData}
       />
     </div>
   );

@@ -10,8 +10,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'AMA GYM — Management System',
-    template: '%s | AMA GYM',
+    default: 'Salon Raed — Management System',
+    template: '%s | Salon Raed',
   },
   description:
     'A modern gym management system to manage members, classes, trainers, payments, and more.',

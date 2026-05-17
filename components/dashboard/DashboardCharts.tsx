@@ -1,18 +1,29 @@
 'use client';
 
-import { RevenueChart, MemberGrowthChart, PlanDistributionChart, GenderBreakdownChart } from '@/components/charts/Charts';
-import { formatCurrency } from '@/lib/utils';
+import { RevenueChart, MemberGrowthChart, PlanDistributionChart } from '@/components/charts/Charts';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import { formatCurrencyAuto } from '@/lib/currency';
 
 interface DashboardChartsProps {
   revenueData:     { month: string; revenue: number }[];
   memberGrowthData: { month: string; members: number }[];
   planData:        { name: string; value: number }[];
-  genderData:      { month: string; male: number; female: number }[];
 }
 
 export default function DashboardCharts({
-  revenueData, memberGrowthData, planData, genderData,
+  revenueData, memberGrowthData, planData,
 }: DashboardChartsProps) {
+  const { currency, lbpRate } = useCurrency();
+
+  // Convert revenue data to the current currency for display
+  const convertedRevenueData = revenueData.map(d => ({
+    ...d,
+    revenue: currency === 'LBP' ? Math.round(d.revenue * lbpRate) : d.revenue,
+  }));
+
+  const currencyFormatter = (val: number) =>
+    formatCurrencyAuto(currency === 'LBP' ? val / lbpRate : val, currency, lbpRate);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       {/* Monthly Revenue — full width */}
@@ -20,14 +31,14 @@ export default function DashboardCharts({
         <div className="chart-card-header">
           <div>
             <p className="chart-card-title">Revenue Overview</p>
-            <p className="chart-card-subtitle">Monthly revenue for the last 6 months</p>
+            <p className="chart-card-subtitle">Monthly revenue for the last 6 months ({currency})</p>
           </div>
         </div>
-        <RevenueChart data={revenueData} />
+        <RevenueChart data={convertedRevenueData} currency={currency} lbpRate={lbpRate} />
       </div>
 
       {/* Member Growth + Plan Distribution */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+      <div className="chart-grid-2">
         <div className="chart-card">
           <div className="chart-card-header">
             <div>
@@ -53,17 +64,6 @@ export default function DashboardCharts({
             <PlanDistributionChart data={planData} />
           )}
         </div>
-      </div>
-
-      {/* Gender Breakdown */}
-      <div className="chart-card">
-        <div className="chart-card-header">
-          <div>
-            <p className="chart-card-title">Gender Breakdown</p>
-            <p className="chart-card-subtitle">New members gender per month</p>
-          </div>
-        </div>
-        <GenderBreakdownChart data={genderData} />
       </div>
 
     </div>

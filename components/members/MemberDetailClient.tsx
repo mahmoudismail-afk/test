@@ -14,11 +14,13 @@ import {
 import Modal from '@/components/ui/Modal';
 import { renewMembership } from '@/lib/actions/members';
 import CurrencyInput from '@/components/ui/CurrencyInput';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 const METHODS = ['cash', 'card', 'bank_transfer', 'other'];
 
 export default function MemberDetailClient({ member, plans }: { member: any; plans: any[] }) {
   const router = useRouter();
+  const { format } = useCurrency();
   const name = member.profile?.full_name ?? 'Unknown';
   const activeMembership = member.memberships?.find((m: any) => m.status === 'active');
   const totalPaid = (member.payments ?? []).reduce((s: number, p: any) => s + Number(p.amount), 0);
@@ -28,7 +30,7 @@ export default function MemberDetailClient({ member, plans }: { member: any; pla
     const phone = member.profile?.phone ?? '';
     if (!phone) return;
     const name = member.profile?.full_name ?? 'there';
-    const message = `Hello ${name}, your membership at AMA GYM expires ${remaining === 0 ? 'today' : remaining === 1 ? 'tomorrow' : `in ${remaining} days`}! Don't forget to renew.`;
+    const message = `Hello ${name}, your membership at Salon Raed expires ${remaining === 0 ? 'today' : remaining === 1 ? 'tomorrow' : `in ${remaining} days`}! Don't forget to renew.`;
     const url = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
@@ -154,7 +156,7 @@ export default function MemberDetailClient({ member, plans }: { member: any; pla
             <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>Quick Stats</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
               {[
-                { label: 'Total Paid', value: formatCurrency(totalPaid), icon: CreditCard, color: '#f59e0b' },
+                { label: 'Total Paid', value: format(totalPaid), icon: CreditCard, color: '#f59e0b' },
                 { label: 'Member Since', value: formatDate(member.created_at), icon: Calendar, color: '#6c63ff' },
               ].map(({ label, value, icon: Icon, color }) => (
                 <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -293,7 +295,7 @@ export default function MemberDetailClient({ member, plans }: { member: any; pla
             <div style={{ background: 'var(--bg-base)', borderRadius: 10, padding: '0.875rem', fontSize: '0.8125rem', color: 'var(--text-secondary)', display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
               <div>
                 <p style={{ color: 'var(--text-muted)', marginBottom: 2 }}>Base Price</p>
-                <p style={{ color: 'var(--success)', fontWeight: 700 }}>{formatCurrency(selectedPlan.price)}</p>
+                <p style={{ color: 'var(--success)', fontWeight: 700 }}>{format(selectedPlan.price)}</p>
               </div>
               <div>
                 <p style={{ color: 'var(--text-muted)', marginBottom: 2 }}>Duration</p>

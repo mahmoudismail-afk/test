@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Edit, Trash2, Check, X, Scissors } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { formatCurrency } from '@/lib/utils';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import CurrencyInput from '@/components/ui/CurrencyInput';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface Plan {
   id: string; name: string; description?: string;
@@ -18,6 +19,7 @@ const EMPTY_PLAN = { name: '', description: '', price: '', duration_days: '30', 
 
 export default function PlansClient({ plans: initialPlans }: { plans: Plan[] }) {
   const router = useRouter();
+  const { format } = useCurrency();
   const [plans, setPlans] = useState(initialPlans);
   const [modalOpen, setModalOpen] = useState(false);
   const [editPlan, setEditPlan] = useState<Plan | null>(null);
@@ -90,7 +92,7 @@ export default function PlansClient({ plans: initialPlans }: { plans: Plan[] }) 
       <div className="page-header">
         <div>
           <h1 className="page-title">Membership Plans</h1>
-          <p className="page-subtitle">{plans.length} plan{plans.length !== 1 ? 's' : ''} configured at AMA GYM</p>
+          <p className="page-subtitle">{plans.length} plan{plans.length !== 1 ? 's' : ''} configured at Salon Raed</p>
         </div>
         <button className="btn btn-primary" onClick={openNew} id="add-plan-btn">
           <Plus size={16} /> New Plan
@@ -116,7 +118,7 @@ export default function PlansClient({ plans: initialPlans }: { plans: Plan[] }) 
 
             <div style={{ marginBottom: '1rem' }}>
               <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                {formatCurrency(p.price)}
+                {format(p.price)}
               </span>
               <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}> / {p.duration_days} days</span>
             </div>
@@ -184,9 +186,12 @@ export default function PlansClient({ plans: initialPlans }: { plans: Plan[] }) 
           </div>
           <div className="grid-2" style={{ gap: '0.875rem' }}>
             <div className="form-group">
-              <label className="form-label">Price (USD) <span className="required">*</span></label>
-              <input name="price" type="number" min="0" step="0.01" className="form-input"
-                placeholder="29.99" value={form.price} onChange={handleChange} required />
+              <label className="form-label">Price <span className="required">*</span></label>
+              <CurrencyInput
+                valueUsd={form.price}
+                onChange={val => setForm(prev => ({ ...prev, price: val }))}
+                id="plan-price"
+              />
             </div>
             <div className="form-group">
               <label className="form-label">Duration (days) <span className="required">*</span></label>

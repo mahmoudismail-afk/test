@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { Users, DollarSign, Activity, TrendingUp, TrendingDown } from 'lucide-react';
-import { formatCurrency, getLastNMonths } from '@/lib/utils';
+import { getLastNMonths } from '@/lib/utils';
 import StatCard from '@/components/dashboard/StatCard';
 import DashboardCharts from '@/components/dashboard/DashboardCharts';
 import DashboardRefresher from '@/components/dashboard/DashboardRefresher';
@@ -88,28 +88,21 @@ async function getDashboardData() {
     const monthlyExpenses = (expensesThisMonth ?? []).reduce((s, e) => s + Number(e.amount), 0);
     const monthlyProfit  = monthlyRevenue - monthlyExpenses;
 
-    // ── Member growth + gender breakdown ──
+    // ── Member growth ──
     const { data: membersByMonth } = await supabase
       .from('members')
-      .select('created_at, gender')
+      .select('created_at')
       .gte('created_at', new Date(now.getFullYear(), now.getMonth() - 5, 1).toISOString());
 
     const memberGrowthMap: Record<string, number> = {};
-    const genderMap: Record<string, { male: number; female: number }> = {};
     months.forEach((m) => {
       memberGrowthMap[m] = 0;
-      genderMap[m] = { male: 0, female: 0 };
     });
     (membersByMonth ?? []).forEach((mb: any) => {
       const m = new Date(mb.created_at).toLocaleString('en-US', { month: 'short' });
       if (memberGrowthMap[m] !== undefined) memberGrowthMap[m]++;
-      if (genderMap[m] !== undefined) {
-        if (mb.gender === 'male') genderMap[m].male++;
-        else if (mb.gender === 'female') genderMap[m].female++;
-      }
     });
     const memberGrowthData = months.map((month) => ({ month, members: memberGrowthMap[month] }));
-    const genderData = months.map((month) => ({ month, ...genderMap[month] }));
 
     // ── Plan distribution ──
     const { data: membershipsWithPlan } = await supabase
@@ -138,7 +131,6 @@ async function getDashboardData() {
       revenueData,
       memberGrowthData,
       planData,
-      genderData,
     };
   } catch (error) {
     console.error('Error fetching dashboard data during build:', error);
@@ -153,13 +145,12 @@ async function getDashboardData() {
       revenueData:      months.map((month) => ({ month, revenue: 0 })),
       memberGrowthData: months.map((month) => ({ month, members: 0 })),
       planData: [],
-      genderData:       months.map((month) => ({ month, male: 0, female: 0 })),
     };
   }
 }
 
 export default async function DashboardPage() {
-  const { stats, revenueData, memberGrowthData, planData, genderData } = await getDashboardData();
+  const { stats, revenueData, memberGrowthData, planData } = await getDashboardData();
 
   return (
     <div>
@@ -181,7 +172,7 @@ export default async function DashboardPage() {
         <StatCard
           title="Total Members"
           value={stats.totalMembers}
-          icon={Users}
+          icon={<Users size={22} />}
           iconColor="var(--primary-light)"
           iconBg="var(--primary-glow)"
           change={stats.newThisMonth}
@@ -190,14 +181,14 @@ export default async function DashboardPage() {
         <StatCard
           title="Active Members"
           value={stats.activeMembers}
-          icon={Users}
+          icon={<Users size={22} />}
           iconColor="#10b981"
           iconBg="rgba(16,185,129,0.15)"
         />
         <StatCard
           title="Revenue This Month"
-          value={formatCurrency(stats.monthlyRevenue)}
-          icon={DollarSign}
+          amountUsd={stats.monthlyRevenue}
+          icon={<DollarSign size={22} />}
           iconColor="#f59e0b"
           iconBg="rgba(245,158,11,0.15)"
         />
@@ -207,15 +198,15 @@ export default async function DashboardPage() {
       <div className="grid-2" style={{ marginBottom: '1.5rem' }}>
         <StatCard
           title="Expenses This Month"
-          value={formatCurrency(stats.monthlyExpenses)}
-          icon={TrendingDown}
+          amountUsd={stats.monthlyExpenses}
+          icon={<TrendingDown size={22} />}
           iconColor="#ef4444"
           iconBg="rgba(239,68,68,0.15)"
         />
         <StatCard
           title="Profit This Month"
-          value={formatCurrency(stats.monthlyProfit)}
-          icon={stats.monthlyProfit >= 0 ? TrendingUp : TrendingDown}
+          amountUsd={stats.monthlyProfit}
+          icon={stats.monthlyProfit >= 0 ? <TrendingUp size={22} /> : <TrendingDown size={22} />}
           iconColor={stats.monthlyProfit >= 0 ? '#10b981' : '#ef4444'}
           iconBg={stats.monthlyProfit >= 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}
         />
@@ -226,7 +217,6 @@ export default async function DashboardPage() {
         revenueData={revenueData}
         memberGrowthData={memberGrowthData}
         planData={planData}
-        genderData={genderData}
       />
     </div>
   );

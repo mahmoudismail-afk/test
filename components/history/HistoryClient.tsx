@@ -4,8 +4,6 @@ import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell,
 } from 'recharts';
-import { GenderBreakdownChart } from '@/components/charts/Charts';
-
 const tooltipStyle = {
   backgroundColor: 'var(--bg-elevated)',
   border: '1px solid var(--border)',
@@ -25,12 +23,11 @@ interface HistoryClientProps {
   monthlyExpensesData: { month: string; expense: number; salary: number; total: number }[];
   profitData: { month: string; revenue: number; expenses: number; profit: number }[];
   inventoryData: { month: string; sales: number; restocks: number }[];
-  genderData: { month: string; male: number; female: number }[];
 }
 
 export default function HistoryClient({
   year, revenueData, memberGrowthData, planDistData, renewalsData,
-  monthlyExpensesData, profitData, inventoryData, genderData,
+  monthlyExpensesData, profitData, inventoryData,
 }: HistoryClientProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -102,7 +99,7 @@ export default function HistoryClient({
       </div>
 
       {/* 2-column row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+      <div className="chart-grid-2" style={{ gap: '1.5rem' }}>
 
         {/* Monthly Expenses breakdown */}
         <div className="chart-card">
@@ -227,16 +224,6 @@ export default function HistoryClient({
         </ResponsiveContainer>
       </div>
 
-      {/* Gender Breakdown */}
-      <div className="chart-card">
-        <div className="chart-card-header">
-          <div>
-            <p className="chart-card-title">Gender Breakdown — {year}</p>
-            <p className="chart-card-subtitle">New members gender per month</p>
-          </div>
-        </div>
-        <GenderBreakdownChart data={genderData} />
-      </div>
     </div>
   );
 }

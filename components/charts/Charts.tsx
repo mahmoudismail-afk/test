@@ -5,6 +5,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
+import { type Currency } from '@/lib/currency';
 
 /* ── Shared tooltip style ── */
 const tooltipStyle = {
@@ -18,8 +19,21 @@ const tooltipStyle = {
 /* ── Revenue Area Chart ── */
 interface RevenueChartProps {
   data: { month: string; revenue: number }[];
+  currency?: Currency;
+  lbpRate?: number;
 }
-export function RevenueChart({ data }: RevenueChartProps) {
+export function RevenueChart({ data, currency = 'USD', lbpRate = 89500 }: RevenueChartProps) {
+  const isLBP = currency === 'LBP';
+  const sym = isLBP ? 'ل.ل' : '$';
+  const axisFormatter = (v: number) =>
+    isLBP
+      ? v >= 1_000_000 ? `${sym}${(v / 1_000_000).toFixed(1)}M` : `${sym}${(v / 1000).toFixed(0)}k`
+      : v >= 1000 ? `${sym}${(v / 1000).toFixed(0)}k` : `${sym}${v}`;
+  const tooltipFormatter = (val: number) =>
+    isLBP
+      ? [`${sym} ${Math.round(val).toLocaleString()}`, 'Revenue']
+      : [`$${val.toLocaleString()}`, 'Revenue'];
+
   return (
     <ResponsiveContainer width="100%" height={240}>
       <AreaChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
@@ -32,10 +46,10 @@ export function RevenueChart({ data }: RevenueChartProps) {
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
         <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false}
-          tickFormatter={(v) => `$${v >= 1000 ? `${v/1000}k` : v}`} />
+          tickFormatter={axisFormatter} />
         <Tooltip
           contentStyle={tooltipStyle}
-          formatter={(val: number) => [`$${val.toLocaleString()}`, 'Revenue']}
+          formatter={tooltipFormatter}
         />
         <Area type="monotone" dataKey="revenue" stroke="#6c63ff" strokeWidth={2.5}
           fill="url(#revenueGrad)" dot={false} activeDot={{ r: 5, fill: '#6c63ff' }} />
@@ -128,36 +142,6 @@ export function DailyRevenueChart({ data }: DailyRevenueChartProps) {
           cursor={{ fill: 'rgba(6,182,212,0.08)' }}
         />
         <Bar dataKey="revenue" fill="url(#dailyGrad)" radius={[3, 3, 0, 0]} maxBarSize={18} />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-}
-
-/* ── Gender Breakdown — Stacked Bar Chart (per month) ── */
-interface GenderBreakdownChartProps {
-  data: { month: string; male: number; female: number }[];
-}
-export function GenderBreakdownChart({ data }: GenderBreakdownChartProps) {
-  return (
-    <ResponsiveContainer width="100%" height={230}>
-      <BarChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-        <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
-        <Tooltip
-          contentStyle={tooltipStyle}
-          formatter={(val: number, name: string) => [val, name === 'male' ? '♂ Male' : '♀ Female']}
-          cursor={{ fill: 'rgba(255,255,255,0.04)' }}
-        />
-        <Legend
-          formatter={(v) => (
-            <span style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>
-              {v === 'male' ? '♂ Male' : '♀ Female'}
-            </span>
-          )}
-        />
-        <Bar dataKey="male"   stackId="g" fill="#06b6d4" maxBarSize={40} />
-        <Bar dataKey="female" stackId="g" fill="#f472b6" radius={[4, 4, 0, 0]} maxBarSize={40} />
       </BarChart>
     </ResponsiveContainer>
   );
