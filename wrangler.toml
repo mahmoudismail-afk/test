@@ -11,6 +11,10 @@ directory = ".open-next/assets"
 binding = "ASSETS"
 
 
+[vars]
+NEXT_PUBLIC_SUPABASE_URL = "https://sjqgalckdhimavjcrxck.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_NWflPIc6U47XHBKzGryYkw_FVCbsPLA"
+
 [[hyperdrive]]
 binding = "HYPERDRIVE"
 id = "bf865615fe534d01b2f6745bba20cdb7"

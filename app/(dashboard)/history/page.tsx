@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { query } from '@/lib/db';
 import { formatCurrency } from '@/lib/utils';
 import { Users, DollarSign, TrendingUp, Calendar, TrendingDown, Receipt, ShoppingCart } from 'lucide-react';
 import HistoryClient from '@/components/history/HistoryClient';
@@ -11,49 +11,38 @@ export const dynamic = 'force-dynamic';
 const ALL_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 async function getHistoryData(year: number) {
-  const supabase = await createClient();
-
   const yearStart = `${year}-01-01`;
   const yearEnd   = `${year}-12-31`;
+  const yearStartDt = `${yearStart}T00:00:00`;
+  const yearEndDt = `${yearEnd}T23:59:59`;
 
   const [
-    { data: payments },
-    { data: membersJoined },
-    { data: membershipsActive },
-    { data: planData },
-    { data: expensesData },
-    { data: inventoryTxData },
+    paymentsRes,
+    membersJoinedRes,
+    membershipsActiveRes,
+    planRes,
+    expensesRes,
+    inventoryTxRes,
   ] = await Promise.all([
-    supabase.from('payments')
-      .select('amount, payment_date')
-      .gte('payment_date', yearStart)
-      .lte('payment_date', yearEnd),
-
-    supabase.from('members')
-      .select('created_at, status')
-      .gte('created_at', `${yearStart}T00:00:00`)
-      .lte('created_at', `${yearEnd}T23:59:59`),
-
-    supabase.from('memberships')
-      .select('status, start_date')
-      .gte('start_date', yearStart)
-      .lte('start_date', yearEnd),
-
-    supabase.from('memberships')
-      .select('plan:membership_plans(name), start_date')
-      .gte('start_date', yearStart)
-      .lte('start_date', yearEnd),
-
-    supabase.from('expenses')
-      .select('amount, date, type')
-      .gte('date', yearStart)
-      .lte('date', yearEnd),
-
-    supabase.from('inventory_transactions')
-      .select('type, total_amount, created_at')
-      .gte('created_at', `${yearStart}T00:00:00`)
-      .lte('created_at', `${yearEnd}T23:59:59`),
+    query('SELECT amount, payment_date FROM payments WHERE payment_date >= $1 AND payment_date <= $2', [yearStart, yearEnd]),
+    query('SELECT created_at, status FROM members WHERE created_at >= $1 AND created_at <= $2', [yearStartDt, yearEndDt]),
+    query('SELECT status, start_date FROM memberships WHERE start_date >= $1 AND start_date <= $2', [yearStart, yearEnd]),
+    query(`
+      SELECT mp.name as plan_name, ms.start_date 
+      FROM memberships ms 
+      LEFT JOIN membership_plans mp ON ms.plan_id = mp.id 
+      WHERE ms.start_date >= $1 AND ms.start_date <= $2
+    `, [yearStart, yearEnd]),
+    query('SELECT amount, date, type FROM expenses WHERE date >= $1 AND date <= $2', [yearStart, yearEnd]),
+    query('SELECT type, total_amount, created_at FROM inventory_transactions WHERE created_at >= $1 AND created_at <= $2', [yearStartDt, yearEndDt]),
   ]);
+
+  const payments = paymentsRes.rows;
+  const membersJoined = membersJoinedRes.rows;
+  const membershipsActive = membershipsActiveRes.rows;
+  const planData = planRes.rows;
+  const expensesData = expensesRes.rows;
+  const inventoryTxData = inventoryTxRes.rows;
 
   // --- Revenue per month ---
   const revenueByMonth: Record<string, number> = {};
@@ -75,11 +64,10 @@ async function getHistoryData(year: number) {
   const memberGrowthData = ALL_MONTHS.map(month => ({ month, members: membersByMonth[month] }));
   const totalNewMembers = membersJoined?.length ?? 0;
 
-
   // --- Plan distribution ---
   const planMap: Record<string, number> = {};
   (planData ?? []).forEach((ms: any) => {
-    const name = ms.plan?.name ?? 'Unknown';
+    const name = ms.plan_name ?? 'Unknown';
     planMap[name] = (planMap[name] ?? 0) + 1;
   });
   const planDistData = Object.entries(planMap).map(([name, value]) => ({ name, value }));
@@ -156,15 +144,10 @@ async function getHistoryData(year: number) {
 }
 
 async function getAvailableYears(): Promise<number[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('members')
-    .select('created_at')
-    .order('created_at', { ascending: true })
-    .limit(1);
+  const { rows } = await query('SELECT created_at FROM members ORDER BY created_at ASC LIMIT 1');
 
-  const earliestYear = data?.[0]
-    ? new Date(data[0].created_at).getFullYear()
+  const earliestYear = rows[0]?.created_at
+    ? new Date(rows[0].created_at).getFullYear()
     : new Date().getFullYear();
 
   const currentYear = new Date().getFullYear();
