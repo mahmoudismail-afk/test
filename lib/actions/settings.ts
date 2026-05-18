@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@supabase/supabase-js';
-
+import { query } from '@/lib/db';
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder';
@@ -71,50 +71,62 @@ export async function updateProfile(profileId: string, data: { full_name: string
 }
 
 export async function getStaffPermissions(): Promise<string[]> {
-  const supabaseAdmin = getAdminClient();
-  const { data } = await supabaseAdmin
-    .from('system_settings')
-    .select('value')
-    .eq('key', 'staff_permissions')
-    .single();
-    
-  let val = data?.value;
-  if (typeof val === 'string') {
-    try {
-      val = JSON.parse(val);
-    } catch (e) {
-      // ignore
+  try {
+    const { rows } = await query(
+      "SELECT value FROM system_settings WHERE key = $1 LIMIT 1",
+      ['staff_permissions']
+    );
+    let val = rows[0]?.value;
+    if (typeof val === 'string') {
+      try {
+        val = JSON.parse(val);
+      } catch (e) {
+        // ignore
+      }
     }
+    return Array.isArray(val) ? val : ['dashboard', 'members', 'checkins', 'classes'];
+  } catch (err) {
+    console.error("Error fetching staff permissions directly:", err);
+    return ['dashboard', 'members', 'checkins', 'classes'];
   }
-  
-  return Array.isArray(val) ? val : ['dashboard', 'members', 'checkins', 'classes'];
 }
 
 export async function saveStaffPermissions(permissions: string[]) {
-  const supabaseAdmin = getAdminClient();
-  const { error } = await supabaseAdmin
-    .from('system_settings')
-    .upsert({ key: 'staff_permissions', value: permissions });
-  if (error) return { error: error.message };
-  return { success: true };
+  try {
+    // We store jsonb string representation
+    const jsonStr = JSON.stringify(permissions);
+    await query(
+      "INSERT INTO system_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value",
+      ['staff_permissions', jsonStr]
+    );
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message };
+  }
 }
 
 export async function getLbpRate(): Promise<number> {
-  const supabaseAdmin = getAdminClient();
-  const { data } = await supabaseAdmin
-    .from('system_settings')
-    .select('value')
-    .eq('key', 'lbp_rate')
-    .single();
-  const rate = Number(data?.value);
-  return !isNaN(rate) && rate > 0 ? rate : 89500;
+  try {
+    const { rows } = await query(
+      "SELECT value FROM system_settings WHERE key = $1 LIMIT 1",
+      ['lbp_rate']
+    );
+    const rate = Number(rows[0]?.value);
+    return !isNaN(rate) && rate > 0 ? rate : 89500;
+  } catch (err) {
+    console.error("Error fetching LBP rate directly:", err);
+    return 89500;
+  }
 }
 
 export async function saveLbpRate(rate: number) {
-  const supabaseAdmin = getAdminClient();
-  const { error } = await supabaseAdmin
-    .from('system_settings')
-    .upsert({ key: 'lbp_rate', value: rate });
-  if (error) return { error: error.message };
-  return { success: true };
+  try {
+    await query(
+      "INSERT INTO system_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value",
+      ['lbp_rate', String(rate)]
+    );
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message };
+  }
 }
