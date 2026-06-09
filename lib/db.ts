@@ -31,7 +31,7 @@ const globalForDb = globalThis as unknown as { pool: Pool | null };
 function getHyperdrive(): Pool | null {
   if (globalForDb.pool) return globalForDb.pool;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line
     const { getCloudflareContext } = require('@opennextjs/cloudflare');
     const ctx = getCloudflareContext() as any;
     if (ctx?.env?.HYPERDRIVE?.connectionString) {
