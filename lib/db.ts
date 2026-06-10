@@ -10,7 +10,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Pool } from 'pg';
 
 export interface QueryResult {
-  rows: Record<string, any>[];
+  rows: any[];
   rowCount: number | null;
 }
 

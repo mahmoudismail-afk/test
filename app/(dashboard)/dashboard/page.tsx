@@ -23,8 +23,8 @@ export default async function DashboardPage() {
   try { lbpRate   = await getLbpRate();        } catch { lbpRate   = 89500; }
 
   const kpis          = stats?.kpis           ?? null;
-  const revenueByMonth = (stats?.revenueByMonth ?? []) as { month: string; month_date: string; revenue_usd: string; transactions: string }[];
-  const topProducts   = (stats?.topProducts    ?? []) as { product_name: string; qty_sold: string; revenue_usd: string }[];
+  const revenueByMonth = stats?.revenueByMonth ?? [];
+  const topProducts   = stats?.topProducts    ?? [];
   const totalDebtUsd  = stats?.totalDebtUsd   ?? 0;
 
   const revenue6m    = parseFloat(kpis?.revenue_6m ?? '0');
