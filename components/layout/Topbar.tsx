@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Bell, Search, Menu, Settings } from 'lucide-react';
+import { Bell, Menu, Settings } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 
@@ -28,16 +28,7 @@ export default function Topbar({ userName, userEmail, avatarUrl, role, onMenuCli
         <Menu size={20} />
       </button>
 
-      {/* Search */}
-      <div className="topbar-search">
-        <Search size={16} className="topbar-search-icon" />
-        <input
-          type="search"
-          placeholder="Search members, classes..."
-          className="topbar-search-input"
-          id="topbar-search"
-        />
-      </div>
+
 
       <div className="topbar-actions">
         {/* Settings link — visible on mobile next to avatar */}
