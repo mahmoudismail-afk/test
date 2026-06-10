@@ -395,23 +395,35 @@ export async function getDashboardStats() {
   );
 
   // Expenses this month
-  const { rows: expensesThisMonth } = await query(
-    `SELECT
-       COALESCE(SUM(amount), 0) AS total_usd,
-       COUNT(*) AS count
-     FROM expenses
-     WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())`
-  );
+  let expensesThisMonth: any[] = [];
+  try {
+    const res = await query(
+      `SELECT
+         COALESCE(SUM(amount), 0) AS total_usd,
+         COUNT(*) AS count
+       FROM expenses
+       WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())`
+    );
+    expensesThisMonth = res.rows;
+  } catch {
+    // table might not exist yet
+  }
 
   // Revenue this month
-  const { rows: revenueThisMonth } = await query(
-    `SELECT
-       COALESCE(SUM(subtotal_usd), 0) AS total_usd,
-       COUNT(*) AS transactions
-     FROM pos_transactions
-     WHERE is_voided = FALSE
-       AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())`
-  );
+  let revenueThisMonth: any[] = [];
+  try {
+    const res = await query(
+      `SELECT
+         COALESCE(SUM(subtotal_usd), 0) AS total_usd,
+         COUNT(*) AS transactions
+       FROM pos_transactions
+       WHERE is_voided = FALSE
+         AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())`
+    );
+    revenueThisMonth = res.rows;
+  } catch {
+    // table might not exist yet
+  }
 
   return {
     revenueByMonth,
