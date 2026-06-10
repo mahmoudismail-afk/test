@@ -635,15 +635,15 @@
   background: var(--bg-card);
   border: 2px solid var(--border);
   border-radius: var(--radius);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
   transition: var(--transition);
   font-family: var(--font);
 }
-.pos-pay-method-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+.pos-pay-method-btn:hover { border-color: var(--accent); color: var(--text-primary); background: var(--bg-card-hover); }
 .pos-pay-method-btn.selected {
   border-color: var(--accent);
   background: var(--accent-dim);

@@ -25,7 +25,6 @@ export default async function ExpensesPage() {
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
             <Receipt size={22} style={{ color: 'var(--primary-light)' }} /> Expenses
           </h1>
-          <p className="page-subtitle">Track gym expenses and staff salaries</p>
         </div>
       </div>
 

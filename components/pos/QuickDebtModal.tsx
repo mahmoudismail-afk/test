@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Users, DollarSign, Check, AlertCircle, Search } from 'lucide-react';
+import { X, Users, Check, AlertCircle, Search } from 'lucide-react';
 import { formatUSD, formatLBP } from '@/lib/currency';
 
 interface Debtor {
@@ -17,17 +17,19 @@ interface Props {
   toast: (msg: string, type?: string) => void;
 }
 
+type Currency = 'USD' | 'LBP';
+
 export default function QuickDebtModal({ lbpRate, onClose, toast }: Props) {
   const [debtors, setDebtors]       = useState<Debtor[]>([]);
   const [loading, setLoading]       = useState(true);
   const [search, setSearch]         = useState('');
   const [selected, setSelected]     = useState<Debtor | null>(null);
-  const [amountUsd, setAmountUsd]   = useState('');
+  const [currency, setCurrency]     = useState<Currency>('USD');
+  const [amountInput, setAmountInput] = useState('');
   const [notes, setNotes]           = useState('');
   const [submitting, setSubmitting] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Load all debtors on mount
   useEffect(() => {
     fetch('/api/pos/debts')
       .then(r => r.json())
@@ -41,13 +43,37 @@ export default function QuickDebtModal({ lbpRate, onClose, toast }: Props) {
     (d.customer_phone ?? '').includes(search)
   );
 
-  const amount    = parseFloat(amountUsd) || 0;
-  const amountLbp = Math.round(amount * lbpRate);
+  // Derive USD and LBP amounts from whichever currency is active
+  const inputNum = parseFloat(amountInput) || 0;
+  const amountUsd = currency === 'USD' ? inputNum : inputNum / lbpRate;
+  const amountLbp = currency === 'LBP' ? inputNum : Math.round(inputNum * lbpRate);
+
+  const handleCurrencySwitch = (c: Currency) => {
+    if (!selected) { setCurrency(c); setAmountInput(''); return; }
+    // Convert current input to the new currency
+    if (inputNum > 0) {
+      if (c === 'LBP') {
+        setAmountInput(Math.round(inputNum * lbpRate).toString());
+      } else {
+        setAmountInput((inputNum / lbpRate).toFixed(2));
+      }
+    }
+    setCurrency(c);
+  };
+
+  const setFullBalance = () => {
+    if (!selected) return;
+    if (currency === 'USD') {
+      setAmountInput(selected.balance_usd.toFixed(2));
+    } else {
+      setAmountInput(Math.round(selected.balance_usd * lbpRate).toString());
+    }
+  };
 
   const handlePay = async () => {
     if (!selected) { toast('Select a customer', 'error'); return; }
-    if (amount <= 0) { toast('Enter a valid amount', 'error'); return; }
-    if (amount > selected.balance_usd + 0.001) {
+    if (amountUsd <= 0) { toast('Enter a valid amount', 'error'); return; }
+    if (amountUsd > selected.balance_usd + 0.001) {
       toast(`Amount exceeds balance (${formatUSD(selected.balance_usd)})`, 'error'); return;
     }
 
@@ -58,14 +84,14 @@ export default function QuickDebtModal({ lbpRate, onClose, toast }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           debt_id:    selected.id,
-          amount_usd: amount,
+          amount_usd: amountUsd,
           amount_lbp: amountLbp,
           notes:      notes || null,
         }),
       });
       const data = await res.json();
       if (data.error) { toast(data.error, 'error'); return; }
-      toast(`✓ ${formatUSD(amount)} collected from ${selected.customer_name}`, 'success');
+      toast(`✓ ${currency === 'USD' ? formatUSD(amountUsd) : formatLBP(amountLbp)} collected from ${selected.customer_name}`, 'success');
       onClose();
     } catch {
       toast('Failed to record payment', 'error');
@@ -74,9 +100,11 @@ export default function QuickDebtModal({ lbpRate, onClose, toast }: Props) {
     }
   };
 
+  const remaining = selected ? Math.max(0, selected.balance_usd - amountUsd) : 0;
+
   return (
     <div className="pos-modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="pos-modal" style={{ maxWidth: 460 }}>
+      <div className="pos-modal" style={{ maxWidth: 480 }}>
 
         {/* Header */}
         <div className="pos-modal-header">
@@ -119,7 +147,7 @@ export default function QuickDebtModal({ lbpRate, onClose, toast }: Props) {
                   {filtered.map(d => (
                     <button
                       key={d.id}
-                      onClick={() => { setSelected(d); setAmountUsd(d.balance_usd.toFixed(2)); }}
+                      onClick={() => { setSelected(d); setCurrency('USD'); setAmountInput(d.balance_usd.toFixed(2)); }}
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         padding: '12px 14px', borderRadius: 'var(--radius)',
@@ -159,7 +187,22 @@ export default function QuickDebtModal({ lbpRate, onClose, toast }: Props) {
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Outstanding</div>
                   <div style={{ fontWeight: 700, color: 'var(--red, #f87171)' }}>{formatUSD(selected.balance_usd)}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatLBP(selected.balance_usd * lbpRate)}</div>
                 </div>
+              </div>
+
+              {/* Currency Toggle */}
+              <div className="pos-modal-section-title">Payment Currency</div>
+              <div className="pos-cash-currency-toggle" style={{ marginBottom: 10 }}>
+                {(['USD', 'LBP'] as Currency[]).map(c => (
+                  <button
+                    key={c}
+                    className={`pos-currency-tab${currency === c ? ' active' : ''}`}
+                    onClick={() => handleCurrencySwitch(c)}
+                  >
+                    {c === 'USD' ? '$ USD' : 'ل.ل LBP'}
+                  </button>
+                ))}
               </div>
 
               {/* Amount input */}
@@ -169,56 +212,62 @@ export default function QuickDebtModal({ lbpRate, onClose, toast }: Props) {
                   className="pos-cash-input"
                   type="number"
                   inputMode="decimal"
-                  placeholder="0.00"
-                  value={amountUsd}
-                  onChange={e => setAmountUsd(e.target.value)}
+                  placeholder={currency === 'USD' ? '0.00' : '0'}
+                  value={amountInput}
+                  onChange={e => setAmountInput(e.target.value)}
                   autoFocus
                   style={{ flex: 1 }}
                 />
-                <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-muted)', fontSize: 13 }}>USD</span>
+                <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-muted)', fontSize: 13, minWidth: 36 }}>
+                  {currency === 'USD' ? 'USD' : 'ل.ل'}
+                </span>
               </div>
 
               {/* Quick amounts */}
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-                {[5, 10, 20, 50].filter(v => v <= selected.balance_usd + 0.01).map(v => (
-                  <button
-                    key={v}
-                    className="pos-bill-btn usd"
-                    onClick={() => setAmountUsd(v.toFixed(2))}
-                  >${v}</button>
-                ))}
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                {currency === 'USD'
+                  ? [5, 10, 20, 50].filter(v => v <= selected.balance_usd + 0.01).map(v => (
+                      <button key={v} className="pos-bill-btn usd" onClick={() => setAmountInput(v.toFixed(2))}>${v}</button>
+                    ))
+                  : [100_000, 250_000, 500_000, 1_000_000].filter(v => v <= selected.balance_usd * lbpRate + 1).map(v => (
+                      <button key={v} className="pos-bill-btn lbp" onClick={() => setAmountInput(v.toString())}>
+                        {v >= 1_000_000 ? `${v / 1_000_000}M` : `${v / 1_000}k`} ل.ل
+                      </button>
+                    ))
+                }
                 <button
                   className="pos-bill-btn"
                   style={{ background: 'rgba(108,99,255,0.15)', color: 'var(--primary-light)', border: '1px solid rgba(108,99,255,0.3)' }}
-                  onClick={() => setAmountUsd(selected.balance_usd.toFixed(2))}
-                >Full ({formatUSD(selected.balance_usd)})</button>
+                  onClick={setFullBalance}
+                >Full</button>
               </div>
 
-              {/* LBP equiv */}
-              {amount > 0 && (
-                <div style={{ marginBottom: 12, fontSize: 13, color: 'var(--text-muted)' }}>
-                  ≈ {formatLBP(amountLbp)}
+              {/* Equivalent in other currency */}
+              {inputNum > 0 && (
+                <div style={{ marginBottom: 10, fontSize: 13, color: 'var(--text-muted)' }}>
+                  ≈ {currency === 'USD' ? formatLBP(amountLbp) : formatUSD(amountUsd)}
                 </div>
               )}
 
               {/* Remaining balance preview */}
-              {amount > 0 && amount <= selected.balance_usd + 0.001 && (
+              {amountUsd > 0 && amountUsd <= selected.balance_usd + 0.001 && (
                 <div style={{
                   padding: '10px 14px', borderRadius: 'var(--radius)',
                   background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
-                  fontSize: 13, marginBottom: 12,
+                  fontSize: 13, marginBottom: 10,
                 }}>
                   <span style={{ color: 'var(--text-muted)' }}>Remaining after payment: </span>
-                  <strong style={{ color: amount >= selected.balance_usd - 0.001 ? 'var(--success)' : 'var(--red, #f87171)' }}>
-                    {formatUSD(Math.max(0, selected.balance_usd - amount))}
+                  <strong style={{ color: remaining < 0.01 ? 'var(--success)' : 'var(--red, #f87171)' }}>
+                    {formatUSD(remaining)}
                   </strong>
+                  {remaining > 0 && <span style={{ color: 'var(--text-muted)', fontSize: 11 }}> ({formatLBP(remaining * lbpRate)})</span>}
                 </div>
               )}
 
               {/* Overpayment warning */}
-              {amount > selected.balance_usd + 0.001 && (
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center', color: 'var(--red, #f87171)', fontSize: 13, marginBottom: 12 }}>
-                  <AlertCircle size={14} /> Exceeds balance by {formatUSD(amount - selected.balance_usd)}
+              {amountUsd > selected.balance_usd + 0.001 && (
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', color: 'var(--red, #f87171)', fontSize: 13, marginBottom: 10 }}>
+                  <AlertCircle size={14} /> Exceeds balance by {formatUSD(amountUsd - selected.balance_usd)}
                 </div>
               )}
 
@@ -235,7 +284,7 @@ export default function QuickDebtModal({ lbpRate, onClose, toast }: Props) {
 
               {/* Change customer link */}
               <button
-                onClick={() => { setSelected(null); setAmountUsd(''); setNotes(''); }}
+                onClick={() => { setSelected(null); setAmountInput(''); setNotes(''); }}
                 style={{ fontSize: 12, color: 'var(--primary-light)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', marginTop: 4 }}
               >
                 ← Change customer
@@ -251,7 +300,7 @@ export default function QuickDebtModal({ lbpRate, onClose, toast }: Props) {
             <button
               id="confirm-debt-payment-btn"
               className="pos-btn pos-btn-primary"
-              disabled={submitting || amount <= 0 || amount > selected.balance_usd + 0.001}
+              disabled={submitting || amountUsd <= 0 || amountUsd > selected.balance_usd + 0.001}
               onClick={handlePay}
               style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
             >
@@ -261,7 +310,7 @@ export default function QuickDebtModal({ lbpRate, onClose, toast }: Props) {
                   Recording…
                 </span>
               ) : (
-                <><Check size={16} /> Collect {formatUSD(amount)}</>
+                <><Check size={16} /> Collect {currency === 'USD' ? formatUSD(amountUsd) : formatLBP(amountLbp)}</>
               )}
             </button>
           )}

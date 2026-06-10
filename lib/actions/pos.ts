@@ -394,11 +394,38 @@ export async function getDashboardStats() {
     'SELECT COALESCE(SUM(balance_usd), 0) AS total_debt FROM pos_debts'
   );
 
+  // Expenses this month
+  const { rows: expensesThisMonth } = await query(
+    `SELECT
+       COALESCE(SUM(amount), 0) AS total_usd,
+       COUNT(*) AS count
+     FROM expenses
+     WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())`
+  );
+
+  // Revenue this month
+  const { rows: revenueThisMonth } = await query(
+    `SELECT
+       COALESCE(SUM(subtotal_usd), 0) AS total_usd,
+       COUNT(*) AS transactions
+     FROM pos_transactions
+     WHERE is_voided = FALSE
+       AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())`
+  );
+
   return {
     revenueByMonth,
     topProducts,
     kpis: kpis[0],
     totalDebtUsd: parseFloat(debtTotal[0]?.total_debt ?? '0'),
+    expensesThisMonth: {
+      totalUsd: parseFloat(expensesThisMonth[0]?.total_usd ?? '0'),
+      count: parseInt(expensesThisMonth[0]?.count ?? '0'),
+    },
+    revenueThisMonth: {
+      totalUsd: parseFloat(revenueThisMonth[0]?.total_usd ?? '0'),
+      transactions: parseInt(revenueThisMonth[0]?.transactions ?? '0'),
+    },
   };
 }
 

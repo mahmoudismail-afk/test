@@ -166,19 +166,42 @@ export default function CheckoutModal({ cart, cartTotal, lbpRate, onClose, onCom
             <div className="pos-modal-section-title">Payment Method</div>
             <div className="pos-pay-methods">
               {([
-                { method: 'cash_usd',   label: 'Cash (USD)',       icon: <Banknote size={16} /> },
-                { method: 'cash_lbp',   label: 'Cash (ل.ل)',       icon: <Banknote size={16} /> },
-                { method: 'card',       label: 'Card',             icon: <CreditCard size={16} /> },
-                { method: 'on_account', label: 'On Account',       icon: <UserCheck size={16} /> },
-              ] as { method: PaymentMethod; label: string; icon: React.ReactNode }[]).map(({ method, label, icon }) => (
-                <button
-                  key={method}
-                  className={`pos-pay-method-btn${payMethod === method ? ' selected' : ''}`}
-                  onClick={() => { setPayMethod(method); if (method === 'cash_usd') setCashCurrency('USD'); if (method === 'cash_lbp') setCashCurrency('LBP'); }}
-                >
-                  {icon} {label}
-                </button>
-              ))}
+                { method: 'cash_usd',   label: 'Cash (USD)',  icon: <Banknote size={16} /> },
+                { method: 'cash_lbp',   label: 'Cash (ل.ل)', icon: <Banknote size={16} /> },
+                { method: 'card',       label: 'Card',        icon: <CreditCard size={16} /> },
+                { method: 'on_account', label: 'On Account',  icon: <UserCheck size={16} /> },
+              ] as { method: PaymentMethod; label: string; icon: React.ReactNode }[]).map(({ method, label, icon }) => {
+                // Highlight "On Account" in red/amber when this customer already has a debt
+                const hasDebtWarning = method === 'on_account' && existingDebt !== null && existingDebt > 0;
+                const isSelected = payMethod === method;
+                return (
+                  <button
+                    key={method}
+                    className={`pos-pay-method-btn${isSelected ? ' selected' : ''}`}
+                    onClick={() => { setPayMethod(method); if (method === 'cash_usd') setCashCurrency('USD'); if (method === 'cash_lbp') setCashCurrency('LBP'); }}
+                    style={hasDebtWarning && !isSelected ? {
+                      background: 'rgba(239,68,68,0.15)',
+                      border: '1px solid rgba(239,68,68,0.5)',
+                      color: '#f87171',
+                      opacity: 1,
+                    } : hasDebtWarning && isSelected ? {
+                      background: 'rgba(239,68,68,0.3)',
+                      border: '1px solid rgba(239,68,68,0.7)',
+                      color: '#fca5a5',
+                    } : {}}
+                  >
+                    {icon} {label}
+                    {hasDebtWarning && (
+                      <span style={{
+                        marginLeft: 4, fontSize: 10, fontWeight: 700,
+                        background: '#ef4444', color: '#fff',
+                        borderRadius: 4, padding: '1px 5px',
+                      }}>
+                        !</span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -297,7 +320,7 @@ export default function CheckoutModal({ cart, cartTotal, lbpRate, onClose, onCom
                   return (
                     <div style={{
                       position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-                      background: 'var(--surface)', border: '1px solid rgba(255,255,255,0.12)',
+                      background: 'var(--bg-card)', border: '1px solid var(--border)',
                       borderRadius: 'var(--radius)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
                       marginTop: 4, overflow: 'hidden',
                     }}>

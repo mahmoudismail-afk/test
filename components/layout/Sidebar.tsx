@@ -18,6 +18,7 @@ import {
   ClipboardList,
   BarChart2,
   BookOpen,
+  Receipt,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -25,14 +26,15 @@ import { useState } from 'react';
 import CurrencyToggle from '@/components/ui/CurrencyToggle';
 
 const NAV_ITEMS = [
-  { href: '/dashboard',   label: 'Dashboard',    icon: LayoutDashboard, id: 'dashboard' },
-  { href: '/pos',         label: 'Register',     icon: ShoppingCart,    id: 'pos' },
-  { href: '/inventory',   label: 'Inventory',    icon: Package,         id: 'inventory' },
-  { href: '/debts',       label: 'Debt Ledger',  icon: Users,           id: 'debts' },
-  { href: '/z-report',    label: 'Z-Report',     icon: FileText,        id: 'z-report' },
-  { href: '/master-ledger', label: 'Master Ledger', icon: BookOpen,     id: 'master-ledger', adminOnly: true },
-  { href: '/pos-history', label: 'Sales History',icon: History,         id: 'pos-history' },
-  { href: '/audit-log',   label: 'Audit Log',    icon: ClipboardList,   id: 'audit-log' },
+  { href: '/dashboard',     label: 'Dashboard',     icon: LayoutDashboard, id: 'dashboard' },
+  { href: '/pos',           label: 'Register',      icon: ShoppingCart,    id: 'pos' },
+  { href: '/inventory',     label: 'Inventory',     icon: Package,         id: 'inventory' },
+  { href: '/expenses',      label: 'Expenses',      icon: Receipt,         id: 'expenses' },
+  { href: '/debts',         label: 'Debt Ledger',   icon: Users,           id: 'debts' },
+  { href: '/z-report',      label: 'Z-Report',      icon: FileText,        id: 'z-report' },
+  { href: '/master-ledger', label: 'Master Ledger', icon: BookOpen,        id: 'master-ledger', adminOnly: true },
+  { href: '/pos-history',   label: 'Sales History', icon: History,         id: 'pos-history' },
+  { href: '/audit-log',     label: 'Audit Log',     icon: ClipboardList,   id: 'audit-log' },
 ];
 
 interface SidebarProps {
