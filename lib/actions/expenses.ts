@@ -11,9 +11,11 @@ export async function createExpense(payload: any) {
         type: payload.type,
         title: payload.title,
         amount: payload.amount,
+        amount_lbp: payload.amount_lbp ?? null,
+        currency: payload.currency ?? 'USD',
         date: payload.date,
         notes: payload.notes || null,
-        is_recurring: payload.is_recurring
+        is_recurring: payload.is_recurring,
       })
       .select()
       .single();
@@ -34,9 +36,11 @@ export async function updateExpense(id: string, payload: any) {
         type: payload.type,
         title: payload.title,
         amount: payload.amount,
+        amount_lbp: payload.amount_lbp ?? null,
+        currency: payload.currency ?? 'USD',
         date: payload.date,
         notes: payload.notes || null,
-        is_recurring: payload.is_recurring
+        is_recurring: payload.is_recurring,
       })
       .eq('id', id)
       .select()

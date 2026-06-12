@@ -23,7 +23,6 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import CurrencyToggle from '@/components/ui/CurrencyToggle';
 
 const NAV_ITEMS = [
   { href: '/dashboard',     label: 'Dashboard',     icon: LayoutDashboard, id: 'dashboard' },
@@ -75,10 +74,7 @@ export default function Sidebar({ mobileOpen, onClose, role = 'staff', staffPerm
         {!collapsed && <span className="sidebar-logo-text">POS System</span>}
       </div>
 
-      {/* Currency Toggle */}
-      <div style={{ padding: collapsed ? '0.5rem' : '0.25rem 1rem 0.5rem' }}>
-        <CurrencyToggle collapsed={collapsed} />
-      </div>
+
 
       {/* Collapse toggle */}
       <button
