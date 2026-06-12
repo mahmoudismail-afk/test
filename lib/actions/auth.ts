@@ -13,7 +13,7 @@ function getAdminClient() {
 export async function registerAdmin(data: { username: string; password: string; fullName: string; phone: string }) {
   try {
     const supabaseAdmin = getAdminClient();
-    const emailToAuth = `${data.username.trim()}@salonraed.local`;
+    const emailToAuth = `${data.username.trim()}@possystem.local`;
 
     const { data: user, error } = await supabaseAdmin.auth.admin.createUser({
       email: emailToAuth,

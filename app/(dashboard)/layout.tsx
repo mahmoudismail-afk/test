@@ -26,7 +26,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // still render the shell with safe defaults instead of redirecting/crashing.
   const displayName  = profile?.full_name   || user.email?.split('@')[0] || 'Admin';
   const rawEmail     = profile?.email ?? '';
-  const displayEmail = (rawEmail.includes('@amagym.local') || rawEmail.includes('@salonraed.local')) ? '' : rawEmail;
+  const displayEmail = (rawEmail.includes('@amagym.local') || rawEmail.includes('@possystem.local')) ? '' : rawEmail;
   const role: string = profile?.role ?? 'staff';
 
   return (

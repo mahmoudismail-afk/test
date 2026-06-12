@@ -18,7 +18,7 @@ export async function createStaffAccount(data: {
   role: 'staff' | 'admin';
 }) {
   const admin = getAdminClient();
-  const email = `${data.username.trim()}@salonraed.local`;
+  const email = `${data.username.trim()}@possystem.local`;
 
   const { data: user, error: createError } = await admin.auth.admin.createUser({
     email,

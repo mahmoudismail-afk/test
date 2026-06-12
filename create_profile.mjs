@@ -11,7 +11,7 @@ const supabase = createClient(
   const { data: { users }, error } = await supabase.auth.admin.listUsers();
   if (error) { console.error('List users error:', error.message); process.exit(1); }
 
-  const admin = users.find(u => u.email === 'admin@salonraed.local');
+  const admin = users.find(u => u.email === 'admin@possystem.local');
   if (!admin) { console.error('Admin user not found — run create_admin.mjs first'); process.exit(1); }
   console.log('Found auth user:', admin.id);
 
@@ -22,7 +22,7 @@ const supabase = createClient(
       auth_id:   admin.id,
       role:      'admin',
       full_name: 'System Admin',
-      email:     'admin@salonraed.local',
+      email:     'admin@possystem.local',
     }, { onConflict: 'auth_id' })
     .select('id, role, full_name');
 

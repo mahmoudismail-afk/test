@@ -271,7 +271,7 @@ export default function SettingsClient({
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {users.map((u) => {
-                  const uname = u.email?.replace('@amagym.local', '').replace('@salonraed.local', '') ?? '—';
+                  const uname = u.email?.replace('@amagym.local', '').replace('@possystem.local', '') ?? '—';
                   const isSelf = u.auth_id === userId;
                   return (
                     <div key={u.id} style={{

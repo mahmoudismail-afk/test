@@ -59,7 +59,7 @@ export default function SignupPage() {
     // Since the account is created and auto-confirmed by the server action,
     // we can immediately log them in on the client side to establish the session.
     const supabase = createClient();
-    const emailToAuth = `${formData.username.trim()}@salonraed.local`;
+    const emailToAuth = `${formData.username.trim()}@possystem.local`;
     
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: emailToAuth,

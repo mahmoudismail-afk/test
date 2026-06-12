@@ -1,5 +1,5 @@
 -- ================================================================
--- Salon Raed — POS System Database Schema
+-- POS System — POS System Database Schema
 -- Run this in your Supabase SQL Editor
 -- SAFE: drops gym-only tables, keeps profiles & system_settings
 -- ================================================================

@@ -1,10 +1,10 @@
 @echo off
 echo ==============================================
-echo Salon Raed Database Backup Tool
+echo POS System Database Backup Tool
 echo ==============================================
 echo.
 
-cd /d "C:\WEB\Salon Raed"
+cd /d "C:\WEB\pos system"
 node backup.js
 
 echo.

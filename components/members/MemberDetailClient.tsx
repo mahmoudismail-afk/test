@@ -30,7 +30,7 @@ export default function MemberDetailClient({ member, plans }: { member: any; pla
     const phone = member.profile?.phone ?? '';
     if (!phone) return;
     const name = member.profile?.full_name ?? 'there';
-    const message = `Hello ${name}, your membership at Salon Raed expires ${remaining === 0 ? 'today' : remaining === 1 ? 'tomorrow' : `in ${remaining} days`}! Don't forget to renew.`;
+    const message = `Hello ${name}, your membership at POS System expires ${remaining === 0 ? 'today' : remaining === 1 ? 'tomorrow' : `in ${remaining} days`}! Don't forget to renew.`;
     const url = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
@@ -102,7 +102,7 @@ export default function MemberDetailClient({ member, plans }: { member: any; pla
             <div className="divider" style={{ margin: '1rem 0' }} />
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', textAlign: 'left' }}>
-              {member.profile?.email && !member.profile.email.includes('@amagym.local') && !member.profile.email.includes('@salonraed.local') && (
+              {member.profile?.email && !member.profile.email.includes('@amagym.local') && !member.profile.email.includes('@possystem.local') && (
                 <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                   <Mail size={15} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{member.profile.email}</span>

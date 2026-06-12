@@ -90,7 +90,7 @@ export default function PlansClient({ plans: initialPlans }: { plans: Plan[] }) 
       <div className="page-header">
         <div>
           <h1 className="page-title">Membership Plans</h1>
-          <p className="page-subtitle">{plans.length} plan{plans.length !== 1 ? 's' : ''} configured at Salon Raed</p>
+          <p className="page-subtitle">{plans.length} plan{plans.length !== 1 ? 's' : ''} configured at POS System</p>
         </div>
         <button className="btn btn-primary" onClick={openNew} id="add-plan-btn">
           <Plus size={16} /> New Plan

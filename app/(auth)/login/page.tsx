@@ -29,7 +29,7 @@ function LoginForm() {
     setLoading(true);
 
     const supabase = createClient();
-    const emailToAuth = `${username.trim()}@salonraed.local`;
+    const emailToAuth = `${username.trim()}@possystem.local`;
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email: emailToAuth, password });
 
     if (authError) {
