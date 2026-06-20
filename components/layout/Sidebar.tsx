@@ -33,7 +33,6 @@ const NAV_ITEMS = [
   { href: '/z-report',      label: 'Z-Report',      icon: FileText,        id: 'z-report' },
   { href: '/master-ledger', label: 'Master Ledger', icon: BookOpen,        id: 'master-ledger', adminOnly: true },
   { href: '/pos-history',   label: 'Sales History', icon: History,         id: 'pos-history' },
-  { href: '/audit-log',     label: 'Audit Log',     icon: ClipboardList,   id: 'audit-log' },
 ];
 
 interface SidebarProps {

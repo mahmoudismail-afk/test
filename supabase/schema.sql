@@ -170,21 +170,6 @@ CREATE TABLE IF NOT EXISTS public.pos_transaction_items (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- ================================================================
--- CART AUDIT LOG (Silent shrinkage deterrence)
--- ================================================================
-CREATE TABLE IF NOT EXISTS public.pos_cart_audit_log (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  cashier_id    UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-  action        TEXT NOT NULL CHECK (action IN ('item_deleted', 'cart_voided', 'qty_reduced')),
-  product_id    UUID REFERENCES public.pos_products(id) ON DELETE SET NULL,
-  product_name  TEXT,
-  quantity      INTEGER,
-  unit_price    NUMERIC(10,4),
-  session_id    UUID REFERENCES public.pos_sessions(id) ON DELETE SET NULL,
-  reason        TEXT,
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
 
 -- ================================================================
 -- PETTY CASH & PAYOUTS
@@ -248,7 +233,6 @@ ALTER TABLE public.inventory_restock_log    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pos_sessions             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pos_transactions         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pos_transaction_items    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pos_cart_audit_log       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pos_petty_cash           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pos_debts                ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pos_debt_payments        ENABLE ROW LEVEL SECURITY;
@@ -265,7 +249,6 @@ CREATE POLICY "authenticated_full_access_restock"     ON public.inventory_restoc
 CREATE POLICY "authenticated_full_access_sessions"    ON public.pos_sessions             FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
 CREATE POLICY "authenticated_full_access_transactions" ON public.pos_transactions        FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
 CREATE POLICY "authenticated_full_access_tx_items"    ON public.pos_transaction_items    FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
-CREATE POLICY "authenticated_full_access_audit"       ON public.pos_cart_audit_log       FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
 CREATE POLICY "authenticated_full_access_petty"       ON public.pos_petty_cash           FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
 CREATE POLICY "authenticated_full_access_debts"       ON public.pos_debts                FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
 CREATE POLICY "authenticated_full_access_debt_pmts"   ON public.pos_debt_payments        FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);

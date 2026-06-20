@@ -174,39 +174,6 @@ export async function createTransaction(payload: TransactionPayload) {
   }
 }
 
-// ════════════════════════════════════════════════════════════
-// CART AUDIT LOG
-// ════════════════════════════════════════════════════════════
-
-export async function logCartVoid(payload: {
-  action: 'item_deleted' | 'cart_voided' | 'qty_reduced';
-  product_id?: string;
-  product_name?: string;
-  quantity?: number;
-  unit_price?: number;
-  session_id?: string;
-  reason?: string;
-}) {
-  try {
-    const cashierId = await getCurrentCashierId();
-    const { error } = await db()
-      .from('pos_cart_audit_log')
-      .insert({
-        cashier_id:   cashierId,
-        action:       payload.action,
-        product_id:   payload.product_id   ?? null,
-        product_name: payload.product_name ?? null,
-        quantity:     payload.quantity     ?? null,
-        unit_price:   payload.unit_price   ?? null,
-        session_id:   payload.session_id   ?? null,
-        reason:       payload.reason       ?? null,
-      });
-    if (error) throw new Error(error.message);
-    return { success: true };
-  } catch (err: any) {
-    return { error: err.message };
-  }
-}
 
 // ════════════════════════════════════════════════════════════
 // PETTY CASH

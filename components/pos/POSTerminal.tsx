@@ -167,22 +167,10 @@ export default function POSTerminal({ products, lbpRate, cashierName, cashierRol
 
   const handleRemoveItem = (productId: string, productName: string, qty: number, price: number) => {
     setCart((prev) => prev.filter((i) => i.product.id !== productId));
-    // Fire-and-forget audit log (non-blocking)
-    fetch('/api/pos/audit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'item_deleted', product_id: productId, product_name: productName, quantity: qty, unit_price: price }),
-    }).catch(() => {});
   };
 
   const handleVoidCart = () => {
     if (cart.length === 0) return;
-    // Log void event
-    fetch('/api/pos/audit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'cart_voided', quantity: cartItems }),
-    }).catch(() => {});
     setCart([]);
     toast('Cart cleared', 'warning');
   };
