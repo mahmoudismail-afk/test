@@ -87,7 +87,7 @@ export default function InventoryClient({ products: initialProducts, lbpRate }: 
     try {
       const result = await restockProduct({ product_id: productId, quantity: qty, cost_per_unit: parseFloat(restockCost) || 0, expiry_date: restockExpiry || undefined });
       if (result.error) { showToastMsg(result.error, 'error'); return; }
-      setProducts((prev) => prev.map((p) => p.id === productId ? { ...p, stock_qty: (result as any).new_stock ?? p.stock_qty + qty } : p));
+      setProducts((prev) => prev.map((p) => p.id === productId ? { ...p, stock_qty: (result as any).new_stock ?? p.stock_qty + qty, cost_price: (result as any).new_cost ?? p.cost_price } : p));
       setRestockingId(null); setRestockQty(''); setRestockCost(''); setRestockExpiry('');
       showToastMsg(`✓ Restocked +${qty} units`);
     } finally { setSaving(false); }
@@ -116,7 +116,7 @@ export default function InventoryClient({ products: initialProducts, lbpRate }: 
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ background: 'var(--bg-card)' }}>
-                {['Barcode', 'Product', 'Category', 'Cost', 'Sell Price', 'Stock', 'Actions'].map((h) => (
+                {['Barcode', 'Product', 'Category', 'Cost/Unit', 'Sell Price', 'Stock', 'Actions'].map((h) => (
                   <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -193,7 +193,7 @@ export default function InventoryClient({ products: initialProducts, lbpRate }: 
                 </select>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                {[{ label: 'Cost Price ($)', key: 'cost_price' }, { label: 'Sell Price ($)', key: 'sell_price' }, { label: 'Initial Stock', key: 'stock_qty' }, { label: 'Low Stock Alert', key: 'low_stock_threshold' }].map(({ label, key }) => (
+                {[{ label: 'Cost/Unit ($)', key: 'cost_price' }, { label: 'Sell Price ($)', key: 'sell_price' }, { label: 'Initial Stock', key: 'stock_qty' }, { label: 'Low Stock Alert', key: 'low_stock_threshold' }].map(({ label, key }) => (
                   <div key={key}>
                     <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>{label}</label>
                     <input type="number" value={(formData as any)[key]} onChange={(e) => setFormData((prev) => ({ ...prev, [key]: parseFloat(e.target.value) || 0 }))} style={{ width: '100%', padding: '10px 14px', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />

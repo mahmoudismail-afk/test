@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { Bell, Menu, Settings } from 'lucide-react';
+import { Bell, Menu, Settings, Sun, Moon } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 
 interface TopbarProps {
   userName?: string;
@@ -15,6 +17,12 @@ interface TopbarProps {
 
 export default function Topbar({ userName, userEmail, avatarUrl, role, onMenuClick }: TopbarProps) {
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <header className="topbar">
@@ -31,6 +39,16 @@ export default function Topbar({ userName, userEmail, avatarUrl, role, onMenuCli
 
 
       <div className="topbar-actions">
+        {mounted && (
+          <button
+            className="btn btn-ghost btn-icon"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            aria-label="Toggle Theme"
+          >
+            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+        )}
+
         {/* Settings link — visible on mobile next to avatar */}
         <Link
           href="/settings"

@@ -19,12 +19,12 @@ const CustomTooltipRevenue = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
       <div style={{
-        background: 'var(--bg-card, #1a1f2e)', border: '1px solid var(--border, #2a3147)',
+        background: 'var(--bg-elevated)', border: '1px solid var(--border)',
         borderRadius: 10, padding: '12px 16px', fontSize: 13,
       }}>
-        <div style={{ fontWeight: 700, marginBottom: 4, color: '#f1f5f9' }}>{label}</div>
+        <div style={{ fontWeight: 700, marginBottom: 4, color: 'var(--text-primary)' }}>{label}</div>
         <div style={{ color: '#38bdf8' }}>{formatUSD(parseFloat(payload[0].value))}</div>
-        {payload[1] && <div style={{ color: '#94a3b8', fontSize: 11 }}>{payload[1]?.value ?? 0} transactions</div>}
+        {payload[1] && <div style={{ color: 'var(--text-secondary)', fontSize: 11 }}>{payload[1]?.value ?? 0} transactions</div>}
       </div>
     );
   }
@@ -65,8 +65,8 @@ export default function DashboardPOSCharts({ revenueByMonth, revenueByWeek, topP
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={revenueData} margin={{ top: 10, right: 0, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false}
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false}
                 tickFormatter={(v) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
               <Tooltip content={<CustomTooltipRevenue />} cursor={{ fill: 'rgba(56,189,248,0.08)' }} />
               <Bar dataKey="revenue" fill="#38bdf8" radius={[6, 6, 0, 0]}>
@@ -93,8 +93,8 @@ export default function DashboardPOSCharts({ revenueByMonth, revenueByWeek, topP
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={weekData} margin={{ top: 10, right: 0, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-              <XAxis dataKey="week" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false}
+              <XAxis dataKey="week" tick={{ fontSize: 12, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false}
                 tickFormatter={(v) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
               <Tooltip content={<CustomTooltipRevenue />} cursor={{ fill: 'rgba(56,189,248,0.08)' }} />
               <Bar dataKey="revenue" fill="#38bdf8" radius={[6, 6, 0, 0]}>
@@ -121,11 +121,11 @@ export default function DashboardPOSCharts({ revenueByMonth, revenueByWeek, topP
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={productData} layout="vertical" margin={{ top: 0, right: 20, left: 10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={90} />
+              <XAxis type="number" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+              <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} width={90} />
               <Tooltip
                 formatter={(v: any) => [`${v} units`, 'Sold']}
-                contentStyle={{ background: '#1a1f2e', border: '1px solid #2a3147', borderRadius: 8, fontSize: 12 }}
+                contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12, color: 'var(--text-primary)' }}
                 cursor={{ fill: 'rgba(108,99,255,0.08)' }}
               />
               <Bar dataKey="qty" radius={[0, 6, 6, 0]}>

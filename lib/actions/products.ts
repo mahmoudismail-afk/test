@@ -124,20 +124,32 @@ export async function restockProduct(payload: {
   try {
     const admin = getAdmin();
 
-    // 1. Get current stock
+    // 1. Get current stock and cost
     const { data: prod, error: err1 } = await admin
       .from('pos_products')
-      .select('stock_qty')
+      .select('stock_qty, cost_price')
       .eq('id', payload.product_id)
       .single();
     if (err1) throw new Error(err1.message);
 
-    const newStock = (prod?.stock_qty ?? 0) + payload.quantity;
+    const currentQty = prod?.stock_qty ?? 0;
+    const currentCost = prod?.cost_price ?? 0;
+    const addedQty = payload.quantity;
+    const addedCost = payload.cost_per_unit;
 
-    // 2. Update stock
+    const newStock = currentQty + addedQty;
+
+    // Calculate Weighted Average Cost (WAC)
+    let newCostPrice = currentCost;
+    if (newStock > 0) {
+      const totalValue = (currentQty * currentCost) + (addedQty * addedCost);
+      newCostPrice = totalValue / newStock;
+    }
+
+    // 2. Update stock and new average cost
     const { error: err2 } = await admin
       .from('pos_products')
-      .update({ stock_qty: newStock })
+      .update({ stock_qty: newStock, cost_price: newCostPrice })
       .eq('id', payload.product_id);
     if (err2) throw new Error(err2.message);
 
@@ -156,7 +168,7 @@ export async function restockProduct(payload: {
 
     revalidatePath('/inventory');
     revalidatePath('/pos');
-    return { success: true, new_stock: newStock };
+    return { success: true, new_stock: newStock, new_cost: newCostPrice };
   } catch (err: any) {
     return { error: err.message };
   }

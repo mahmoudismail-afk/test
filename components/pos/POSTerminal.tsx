@@ -4,9 +4,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ShoppingCart, Search, BarChart2, LogOut,
   Package, Coffee, Zap, Apple, MoreHorizontal, DollarSign,
-  RefreshCw, LayoutDashboard, CreditCard
+  RefreshCw, LayoutDashboard, CreditCard, Sun, Moon
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { createClient } from '@/lib/supabase/client';
 import { formatUSD, formatLBP, usdToLbp } from '@/lib/currency';
 import CartPanel from './CartPanel';
@@ -60,6 +61,10 @@ export default function POSTerminal({ products, lbpRate, cashierName, cashierRol
   const [showDebtModal, setShowDebtModal] = useState(false);
   const [toasts, setToasts] = useState<{ id: number; msg: string; type: string }[]>([]);
   const [scanFlashId, setScanFlashId] = useState<string | null>(null);
+
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   // Barcode scanner buffer
   const barcodeBuffer = useRef('');
@@ -213,6 +218,16 @@ export default function POSTerminal({ products, lbpRate, cashierName, cashierRol
         </div>
 
         <div className="pos-topbar-right">
+
+          {mounted && (
+            <button
+              className="pos-icon-btn"
+              title="Toggle Theme"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
+          )}
 
           <div className="pos-rate-badge">
             <DollarSign size={12} />

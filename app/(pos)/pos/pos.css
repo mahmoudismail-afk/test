@@ -37,6 +37,20 @@
   --transition:    all 0.15s ease;
 }
 
+:root.light {
+  --bg-base:       #f8fafc;
+  --bg-panel:      #f1f5f9;
+  --bg-card:       #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-input:      #ffffff;
+  --border:        #e2e8f0;
+  --border-focus:  #6c63ff;
+
+  --text-primary:  #0f172a;
+  --text-secondary:#475569;
+  --text-muted:    #64748b;
+}
+
 /* ── Layout Shell ─────────────────────────────────────────── */
 .pos-shell {
   display: flex;
