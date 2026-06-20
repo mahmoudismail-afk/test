@@ -3,12 +3,13 @@
 import React from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  CartesianGrid, Cell, PieChart, Pie, Legend
+  CartesianGrid, Cell
 } from 'recharts';
 import { formatUSD } from '@/lib/currency';
 
 interface Props {
   revenueByMonth: { month: string; month_date: string; revenue_usd: string; transactions: string }[];
+  revenueByWeek: { week: string; week_date: string; revenue_usd: string }[];
   topProducts: { product_name: string; qty_sold: string; revenue_usd: string }[];
 }
 
@@ -22,19 +23,24 @@ const CustomTooltipRevenue = ({ active, payload, label }: any) => {
         borderRadius: 10, padding: '12px 16px', fontSize: 13,
       }}>
         <div style={{ fontWeight: 700, marginBottom: 4, color: '#f1f5f9' }}>{label}</div>
-        <div style={{ color: '#6c63ff' }}>{formatUSD(parseFloat(payload[0].value))}</div>
-        <div style={{ color: '#94a3b8', fontSize: 11 }}>{payload[1]?.value ?? 0} transactions</div>
+        <div style={{ color: '#38bdf8' }}>{formatUSD(parseFloat(payload[0].value))}</div>
+        {payload[1] && <div style={{ color: '#94a3b8', fontSize: 11 }}>{payload[1]?.value ?? 0} transactions</div>}
       </div>
     );
   }
   return null;
 };
 
-export default function DashboardPOSCharts({ revenueByMonth, topProducts }: Props) {
+export default function DashboardPOSCharts({ revenueByMonth, revenueByWeek, topProducts }: Props) {
   const revenueData = revenueByMonth.map((r) => ({
     month: r.month,
     revenue: parseFloat(r.revenue_usd),
     transactions: parseInt(r.transactions),
+  }));
+
+  const weekData = revenueByWeek.map((r) => ({
+    week: r.week,
+    revenue: parseFloat(r.revenue_usd),
   }));
 
   const productData = topProducts.map((p) => ({
@@ -44,8 +50,8 @@ export default function DashboardPOSCharts({ revenueByMonth, topProducts }: Prop
   }));
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-      {/* Revenue by Month */}
+    <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
+      {/* Monthly Revenue */}
       <div className="card">
         <div className="card-header">
           <h3 className="card-title">Monthly Revenue (USD)</h3>
@@ -62,10 +68,38 @@ export default function DashboardPOSCharts({ revenueByMonth, topProducts }: Prop
               <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false}
                 tickFormatter={(v) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
-              <Tooltip content={<CustomTooltipRevenue />} cursor={{ fill: 'rgba(108,99,255,0.08)' }} />
-              <Bar dataKey="revenue" fill="#6c63ff" radius={[6, 6, 0, 0]}>
+              <Tooltip content={<CustomTooltipRevenue />} cursor={{ fill: 'rgba(56,189,248,0.08)' }} />
+              <Bar dataKey="revenue" fill="#38bdf8" radius={[6, 6, 0, 0]}>
                 {revenueData.map((_, i) => (
-                  <Cell key={i} fill={i === revenueData.length - 1 ? '#38bdf8' : '#6c63ff'} />
+                  <Cell key={i} fill="#38bdf8" />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+
+      {/* Weekly Revenue */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">Weekly Revenue (USD)</h3>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Last 4 weeks</span>
+        </div>
+        {weekData.length === 0 ? (
+          <div style={{ height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+            No sales data yet
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={weekData} margin={{ top: 10, right: 0, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+              <XAxis dataKey="week" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false}
+                tickFormatter={(v) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
+              <Tooltip content={<CustomTooltipRevenue />} cursor={{ fill: 'rgba(56,189,248,0.08)' }} />
+              <Bar dataKey="revenue" fill="#38bdf8" radius={[6, 6, 0, 0]}>
+                {weekData.map((_, i) => (
+                  <Cell key={i} fill="#38bdf8" />
                 ))}
               </Bar>
             </BarChart>

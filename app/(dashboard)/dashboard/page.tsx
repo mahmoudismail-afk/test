@@ -24,11 +24,17 @@ export default async function DashboardPage() {
 
   const kpis             = stats?.kpis             ?? null;
   const revenueByMonth   = stats?.revenueByMonth   ?? [];
+  const revenueByWeek    = stats?.revenueByWeek    ?? [];
   const topProducts      = stats?.topProducts      ?? [];
   const totalDebtUsd     = stats?.totalDebtUsd     ?? 0;
+  const cogsThisMonth    = stats?.cogsThisMonth    ?? 0;
   const expensesMonth    = stats?.expensesThisMonth ?? { totalUsd: 0, count: 0 };
   const revenueMonth     = stats?.revenueThisMonth  ?? { totalUsd: 0, transactions: 0 };
+  
+  // As per screenshot math: Net Profit = Revenue - General Expenses
   const netProfitMonth   = revenueMonth.totalUsd - expensesMonth.totalUsd;
+  // Gross = Revenue - COGS
+  const grossProfitMonth = revenueMonth.totalUsd - cogsThisMonth;
 
   const revenue6m    = parseFloat(kpis?.revenue_6m ?? '0');
   const transactions = parseInt(kpis?.transactions_6m ?? '0');
@@ -41,9 +47,9 @@ export default async function DashboardPage() {
   return (
     <div>
       {/* Header */}
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: '2rem' }}>
         <div>
-          <h1 className="page-title">Dashboard</h1>
+          <h1 className="page-title" style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>Dashboard</h1>
           <p className="page-subtitle">Showing data for {monthName} & last 6 months</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
@@ -59,164 +65,178 @@ export default async function DashboardPage() {
             <ShoppingCart size={15} />
             Open Register
           </Link>
-          <div className="badge badge-success" style={{ fontSize: '0.8125rem', padding: '0.375rem 0.875rem' }}>
+          <div className="badge badge-success" style={{ fontSize: '0.8125rem', padding: '0.375rem 0.875rem', background: 'rgba(16,185,129,0.15)', color: '#10b981', border: 'none' }}>
             <Activity size={14} /> Live
           </div>
         </div>
       </div>
 
       {/* THIS MONTH section */}
-      <div style={{ marginBottom: '0.5rem' }}>
+      <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem' }}>
           This Month — {monthName}
         </div>
-        <div className="grid-4" style={{ marginBottom: '1.25rem' }}>
+        <div className="grid-3">
 
           {/* Revenue This Month */}
-          <div className="stat-card" style={{ borderLeft: '3px solid #10b981' }}>
-            <div className="stat-card-header">
-              <span className="stat-card-title">Revenue</span>
-              <span className="stat-card-icon" style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981' }}>
-                <TrendingUp size={18} />
-              </span>
+          <div className="card" style={{ borderLeft: '3px solid #10b981', padding: '1.25rem 1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Revenue</span>
+              <TrendingUp size={16} style={{ color: '#10b981' }} />
             </div>
-            <div className="stat-card-value" style={{ color: '#10b981' }}>{formatUSD(revenueMonth.totalUsd)}</div>
-            <div className="stat-card-sub" style={{ color: 'var(--amber)' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#10b981', marginBottom: '0.5rem' }}>
+              {formatUSD(revenueMonth.totalUsd)}
+            </div>
+            <div style={{ fontSize: '0.9rem', color: '#f59e0b', fontWeight: 600, marginBottom: '0.5rem' }}>
               {formatLBP(usdToLbp(revenueMonth.totalUsd, lbpRate))}
             </div>
-            <div className="stat-card-sub">{revenueMonth.transactions} transactions</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+              {revenueMonth.transactions} transactions
+            </div>
           </div>
 
           {/* Expenses This Month */}
-          <div className="stat-card" style={{ borderLeft: '3px solid #ef4444' }}>
-            <div className="stat-card-header">
-              <span className="stat-card-title">Expenses</span>
-              <span className="stat-card-icon" style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444' }}>
-                <TrendingDown size={18} />
-              </span>
+          <div className="card" style={{ borderLeft: '3px solid #ef4444', padding: '1.25rem 1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Expenses</span>
+              <TrendingDown size={16} style={{ color: '#ef4444' }} />
             </div>
-            <div className="stat-card-value" style={{ color: '#ef4444' }}>{formatUSD(expensesMonth.totalUsd)}</div>
-            <div className="stat-card-sub" style={{ color: 'var(--amber)' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ef4444', marginBottom: '0.5rem' }}>
+              {formatUSD(expensesMonth.totalUsd)}
+            </div>
+            <div style={{ fontSize: '0.9rem', color: '#f59e0b', fontWeight: 600, marginBottom: '0.5rem' }}>
               {formatLBP(usdToLbp(expensesMonth.totalUsd, lbpRate))}
             </div>
-            <div className="stat-card-sub">
-              <Link href="/expenses" style={{ color: 'var(--primary)', fontSize: 12, fontWeight: 600 }}>
-                {expensesMonth.count} expenses →
-              </Link>
+            <div style={{ fontSize: '0.85rem', color: '#6c63ff', fontWeight: 600 }}>
+              {expensesMonth.count} general expenses <span style={{ color: 'var(--text-primary)' }}>· {formatUSD(cogsThisMonth)} COGS</span>
             </div>
           </div>
 
           {/* Net Profit This Month */}
-          <div className="stat-card" style={{ borderLeft: `3px solid ${netProfitMonth >= 0 ? '#6c63ff' : '#f59e0b'}` }}>
-            <div className="stat-card-header">
-              <span className="stat-card-title">Net Profit</span>
-              <span className="stat-card-icon" style={{ background: 'rgba(108,99,255,0.15)', color: '#6c63ff' }}>
-                <Wallet size={18} />
-              </span>
+          <div className="card" style={{ borderLeft: `3px solid ${netProfitMonth >= 0 ? '#6c63ff' : '#f59e0b'}`, padding: '1.25rem 1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Net Profit</span>
+              <Wallet size={16} style={{ color: '#6c63ff' }} />
             </div>
-            <div className="stat-card-value" style={{ color: netProfitMonth >= 0 ? '#6c63ff' : '#f87171' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: netProfitMonth >= 0 ? '#6c63ff' : '#f87171', marginBottom: '0.5rem' }}>
               {netProfitMonth >= 0 ? '' : '−'}{formatUSD(Math.abs(netProfitMonth))}
             </div>
-            <div className="stat-card-sub" style={{ color: 'var(--amber)' }}>
+            <div style={{ fontSize: '0.9rem', color: '#f59e0b', fontWeight: 600, marginBottom: '0.5rem' }}>
               {formatLBP(usdToLbp(Math.abs(netProfitMonth), lbpRate))}
             </div>
-            <div className="stat-card-sub" style={{ color: netProfitMonth >= 0 ? 'var(--success)' : '#f87171' }}>
-              {netProfitMonth >= 0 ? '▲ Profit' : '▼ Loss'}
-            </div>
-          </div>
-
-          {/* Outstanding Debt */}
-          <div className="stat-card" style={{ borderLeft: '3px solid #f87171' }}>
-            <div className="stat-card-header">
-              <span className="stat-card-title">Outstanding Debt</span>
-              <span className="stat-card-icon" style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444' }}>
-                <Users size={18} />
-              </span>
-            </div>
-            <div className="stat-card-value" style={{ color: totalDebtUsd > 0 ? '#ef4444' : 'var(--text-primary)' }}>
-              {formatUSD(totalDebtUsd)}
-            </div>
-            <div className="stat-card-sub" style={{ color: 'var(--amber)' }}>
-              {formatLBP(usdToLbp(totalDebtUsd, lbpRate))}
-            </div>
-            <div className="stat-card-sub">
-              <Link href="/debts" style={{ color: 'var(--primary)', fontSize: 12, fontWeight: 600 }}>
-                View debts →
-              </Link>
+            <div style={{ fontSize: '0.85rem', color: '#10b981' }}>
+              Gross: {formatUSD(grossProfitMonth)}
             </div>
           </div>
         </div>
       </div>
 
       {/* 6 MONTH section */}
-      <div style={{ marginBottom: '0.5rem' }}>
+      <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem' }}>
           Last 6 Months
         </div>
-        <div className="grid-3" style={{ marginBottom: '1.25rem' }}>
+        <div className="grid-3">
           {/* Revenue 6M */}
-          <div className="stat-card">
-            <div className="stat-card-header">
-              <span className="stat-card-title">Total Revenue</span>
-              <span className="stat-card-icon" style={{ background: 'rgba(108,99,255,0.15)', color: '#6c63ff' }}>
-                <TrendingUp size={18} />
-              </span>
+          <div className="card" style={{ padding: '1.25rem 1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Total Revenue</span>
+              <TrendingUp size={16} style={{ color: '#6c63ff' }} />
             </div>
-            <div className="stat-card-value">{formatUSD(revenue6m)}</div>
-            <div className="stat-card-sub" style={{ color: 'var(--amber)' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+              {formatUSD(revenue6m)}
+            </div>
+            <div style={{ fontSize: '0.9rem', color: '#f59e0b', fontWeight: 600 }}>
               {formatLBP(usdToLbp(revenue6m, lbpRate))}
             </div>
           </div>
 
           {/* Transactions */}
-          <div className="stat-card">
-            <div className="stat-card-header">
-              <span className="stat-card-title">Transactions</span>
-              <span className="stat-card-icon" style={{ background: 'rgba(56,189,248,0.15)', color: '#38bdf8' }}>
-                <Receipt size={18} />
-              </span>
+          <div className="card" style={{ padding: '1.25rem 1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Transactions</span>
+              <Receipt size={16} style={{ color: '#38bdf8' }} />
             </div>
-            <div className="stat-card-value">{transactions.toLocaleString()}</div>
-            <div className="stat-card-sub">Over 6 months</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+              {transactions.toLocaleString()}
+            </div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+              Over 6 months
+            </div>
           </div>
 
           {/* Avg Daily */}
-          <div className="stat-card">
-            <div className="stat-card-header">
-              <span className="stat-card-title">Avg. Daily Revenue</span>
-              <span className="stat-card-icon" style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>
-                <DollarSign size={18} />
-              </span>
+          <div className="card" style={{ padding: '1.25rem 1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Avg. Daily Revenue</span>
+              <DollarSign size={16} style={{ color: '#f59e0b' }} />
             </div>
-            <div className="stat-card-value">{formatUSD(avgDaily)}</div>
-            <div className="stat-card-sub">Over {activeDays} active days</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+              {formatUSD(avgDaily)}
+            </div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+              Over {activeDays} active days
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Charts */}
-      <DashboardPOSCharts revenueByMonth={revenueByMonth} topProducts={topProducts} />
+      {/* ANALYTICS */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem' }}>
+          Analytics
+        </div>
+        <DashboardPOSCharts 
+          revenueByMonth={revenueByMonth} 
+          revenueByWeek={revenueByWeek} 
+          topProducts={topProducts} 
+        />
+      </div>
 
-      {/* Alerts Row */}
-      <div className="grid-2" style={{ marginTop: '1.5rem' }}>
-        {/* Expiring Soon */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <AlertTriangle size={16} style={{ color: '#f59e0b' }} />
-              Expiring Within 30 Days
-            </h3>
-            <Link href="/inventory" style={{ fontSize: 12, color: 'var(--primary)' }}>
-              View all
+      {/* Bottom Row */}
+      <div className="grid-3" style={{ marginBottom: '2rem' }}>
+        {/* Outstanding Debt */}
+        <div className="card" style={{ borderTop: '3px solid #ef4444', padding: '1.25rem 1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <Users size={16} style={{ color: '#ef4444' }} />
+            <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Outstanding Debt</span>
+          </div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ef4444', marginBottom: '0.5rem' }}>
+            {formatUSD(totalDebtUsd)}
+          </div>
+          <div style={{ fontSize: '0.9rem', color: '#f59e0b', fontWeight: 600, marginBottom: '1.5rem' }}>
+            {formatLBP(usdToLbp(totalDebtUsd, lbpRate))}
+          </div>
+          <div>
+            <Link href="/debts" style={{ 
+              display: 'inline-block',
+              background: 'rgba(108,99,255,0.15)', color: '#6c63ff', 
+              fontSize: '0.8rem', fontWeight: 600, padding: '0.4rem 0.8rem', borderRadius: 6,
+              textDecoration: 'none'
+            }}>
+              Manage Debt Ledger →
             </Link>
           </div>
+        </div>
+
+        {/* Expiring Soon */}
+        <div className="card" style={{ padding: '1.25rem 1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AlertTriangle size={16} style={{ color: '#f59e0b' }} />
+              <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Expiring Within 30 Days</span>
+            </div>
+          </div>
+          <Link href="/inventory" style={{ fontSize: '0.8rem', color: '#6c63ff', textDecoration: 'none', display: 'block', marginBottom: '1rem' }}>
+            View all
+          </Link>
           {expiring.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '12px 0' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, padding: '4px 0' }}>
               ✓ No items expiring soon
             </p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {expiring.slice(0, 5).map((item: any) => (
+              {expiring.slice(0, 4).map((item: any) => (
                 <div
                   key={item.id}
                   style={{
@@ -238,19 +258,18 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Quick Links */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">Quick Actions</h3>
+        {/* Quick Actions */}
+        <div className="card" style={{ padding: '1.25rem 1.5rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
+            <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Quick Actions</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
               { href: '/pos',         label: 'Open POS Register',    icon: <ShoppingCart size={16} />, color: '#6c63ff' },
               { href: '/z-report',    label: 'View Z-Report (Today)', icon: <Calendar size={16} />,     color: '#10b981' },
               { href: '/expenses',    label: 'Log Expense',           icon: <TrendingDown size={16} />, color: '#ef4444' },
-              { href: '/inventory',   label: 'Manage Inventory',      icon: <Package size={16} />,      color: '#f59e0b' },
+              { href: '/inventory',   label: 'Manage Items',          icon: <Package size={16} />,      color: '#f59e0b' },
               { href: '/debts',       label: 'Debt Ledger',           icon: <Users size={16} />,        color: '#f87171' },
-              { href: '/audit-log',   label: 'Audit Log (Admin)',     icon: <Activity size={16} />,     color: '#94a3b8' },
             ].map(({ href, label, icon, color }) => (
               <Link
                 key={href}

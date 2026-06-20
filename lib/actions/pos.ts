@@ -366,6 +366,18 @@ export async function getDashboardStats() {
      ORDER BY month_date ASC`
   );
 
+  const { rows: revenueByWeek } = await query(
+    `SELECT
+       TO_CHAR(DATE_TRUNC('week', created_at), 'DD Mon') AS week,
+       DATE_TRUNC('week', created_at) AS week_date,
+       COALESCE(SUM(subtotal_usd), 0) AS revenue_usd
+     FROM pos_transactions
+     WHERE is_voided = FALSE
+       AND created_at >= NOW() - INTERVAL '4 weeks'
+     GROUP BY DATE_TRUNC('week', created_at)
+     ORDER BY week_date ASC`
+  );
+
   const { rows: topProducts } = await query(
     `SELECT
        ti.product_name,
@@ -425,11 +437,30 @@ export async function getDashboardStats() {
     // table might not exist yet
   }
 
+  // COGS this month
+  let cogsThisMonth = 0;
+  try {
+    const res = await query(
+      `SELECT
+         COALESCE(SUM(ti.quantity * p.cost_price), 0) AS total_cogs
+       FROM pos_transaction_items ti
+       JOIN pos_transactions t ON t.id = ti.transaction_id
+       LEFT JOIN pos_products p ON p.id = ti.product_id
+       WHERE t.is_voided = FALSE
+         AND DATE_TRUNC('month', t.created_at) = DATE_TRUNC('month', NOW())`
+    );
+    cogsThisMonth = parseFloat(res.rows[0]?.total_cogs ?? '0');
+  } catch {
+    // tables might not exist yet
+  }
+
   return {
     revenueByMonth,
+    revenueByWeek,
     topProducts,
     kpis: kpis[0],
     totalDebtUsd: parseFloat(debtTotal[0]?.total_debt ?? '0'),
+    cogsThisMonth,
     expensesThisMonth: {
       totalUsd: parseFloat(expensesThisMonth[0]?.total_usd ?? '0'),
       count: parseInt(expensesThisMonth[0]?.count ?? '0'),
