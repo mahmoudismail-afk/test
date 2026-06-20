@@ -1,4 +1,4 @@
-name = "pos-system"
+name = "pos"
 main = ".open-next/worker.js"
 
 compatibility_date = "2024-11-01"
